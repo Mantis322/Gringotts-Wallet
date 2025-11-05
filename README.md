@@ -657,16 +657,10 @@ We welcome contributions from the magical developer community!
 <sub>Flutter & Blockchain Expert</sub>
 </td>
 <td align="center">
-<img src="https://via.placeholder.com/100x100/6366F1/FFFFFF?text=GM" width="100px;" alt="Goblin Manager"/><br>
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvNoVYGRSKOA_O7qQ9eANPXSdEdD7DddS2GA&s" width="100px;" alt="Goblin Manager"/><br>
 <sub><b>Griphook</b></sub><br>
 <sub>Lead Vault Keeper</sub><br>
 <sub>Security Consultant</sub>
-</td>
-<td align="center">
-<img src="https://via.placeholder.com/100x100/FBBF24/000000?text=SA" width="100px;" alt="Security Architect"/><br>
-<sub><b>Ragnok</b></sub><br>
-<sub>Security Architect</sub><br>
-<sub>Cryptography Expert</sub>
 </td>
 </tr>
 </table>
