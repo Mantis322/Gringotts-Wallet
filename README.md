@@ -384,7 +384,7 @@ Gringotts Gold
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/gringotts-wallet.git
+git clone https://github.com/Mantis322/gringotts-wallet.git
 cd gringotts-wallet
 
 # 2. Install Flutter dependencies
@@ -639,7 +639,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 <div align="center">
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/yourusername/gringotts-wallet)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/Mantis322/gringotts-wallet)
 [![Documentation](https://img.shields.io/badge/Docs-GitBook-3884FF?style=for-the-badge&logo=gitbook)](https://docs.gringotts-wallet.com)
 [![Website](https://img.shields.io/badge/Website-gringotts--wallet.com-FF6B6B?style=for-the-badge&logo=safari)](https://gringotts-wallet.com)
 [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/gringotts)
@@ -650,8 +650,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - 📚 **Documentation**: [docs.gringotts-wallet.com](https://docs.gringotts-wallet.com)
 - 💬 **Discord Community**: [Join our magical community](https://discord.gg/gringotts)
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/gringotts-wallet/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/yourusername/gringotts-wallet/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Mantis322/gringotts-wallet/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Mantis322/gringotts-wallet/discussions)
 - 🔒 **Security Issues**: security@gringotts-wallet.com
 
 ---
