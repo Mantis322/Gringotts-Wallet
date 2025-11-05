@@ -1,6 +1,8 @@
 /// Wallet Model
 /// Represents a Stellar wallet with all necessary information
 class WalletModel {
+  final String id; // Unique identifier for multi-wallet support
+  final String name; // User-friendly name for the wallet
   final String publicKey;
   final String? secretKey;
   final String? mnemonic;
@@ -8,8 +10,11 @@ class WalletModel {
   final bool isTestnet;
   final DateTime createdAt;
   final DateTime lastUpdated;
+  final bool isActive; // Whether this wallet is currently selected
   
   const WalletModel({
+    required this.id,
+    required this.name,
     required this.publicKey,
     this.secretKey,
     this.mnemonic,
@@ -17,11 +22,14 @@ class WalletModel {
     required this.isTestnet,
     required this.createdAt,
     required this.lastUpdated,
+    this.isActive = false,
   });
   
   // Factory constructor for creating empty wallet
   factory WalletModel.empty() {
     return WalletModel(
+      id: '',
+      name: '',
       publicKey: '',
       secretKey: null,
       mnemonic: null,
@@ -29,12 +37,44 @@ class WalletModel {
       isTestnet: true,
       createdAt: DateTime.now(),
       lastUpdated: DateTime.now(),
+      isActive: false,
     );
+  }
+  
+  // Factory constructor for creating new wallet with generated ID
+  factory WalletModel.create({
+    required String name,
+    required String publicKey,
+    String? secretKey,
+    String? mnemonic,
+    required bool isTestnet,
+    bool isActive = false,
+  }) {
+    final now = DateTime.now();
+    return WalletModel(
+      id: _generateWalletId(),
+      name: name,
+      publicKey: publicKey,
+      secretKey: secretKey,
+      mnemonic: mnemonic,
+      balance: 0.0,
+      isTestnet: isTestnet,
+      createdAt: now,
+      lastUpdated: now,
+      isActive: isActive,
+    );
+  }
+  
+  // Generate unique wallet ID
+  static String _generateWalletId() {
+    return 'wallet_${DateTime.now().millisecondsSinceEpoch}_${(1000 + (9999 - 1000) * (DateTime.now().microsecond / 1000000)).toInt()}';
   }
   
   // Factory constructor from JSON
   factory WalletModel.fromJson(Map<String, dynamic> json) {
     return WalletModel(
+      id: json['id'] as String? ?? _generateWalletId(),
+      name: json['name'] as String? ?? 'Wallet',
       publicKey: json['publicKey'] as String,
       secretKey: json['secretKey'] as String?,
       mnemonic: json['mnemonic'] as String?,
@@ -42,12 +82,15 @@ class WalletModel {
       isTestnet: json['isTestnet'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
       lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      isActive: json['isActive'] as bool? ?? false,
     );
   }
   
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
+      'name': name,
       'publicKey': publicKey,
       'secretKey': secretKey,
       'mnemonic': mnemonic,
@@ -55,11 +98,14 @@ class WalletModel {
       'isTestnet': isTestnet,
       'createdAt': createdAt.toIso8601String(),
       'lastUpdated': lastUpdated.toIso8601String(),
+      'isActive': isActive,
     };
   }
   
   // CopyWith method for immutable updates
   WalletModel copyWith({
+    String? id,
+    String? name,
     String? publicKey,
     String? secretKey,
     String? mnemonic,
@@ -67,8 +113,11 @@ class WalletModel {
     bool? isTestnet,
     DateTime? createdAt,
     DateTime? lastUpdated,
+    bool? isActive,
   }) {
     return WalletModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
       publicKey: publicKey ?? this.publicKey,
       secretKey: secretKey ?? this.secretKey,
       mnemonic: mnemonic ?? this.mnemonic,
@@ -76,6 +125,7 @@ class WalletModel {
       isTestnet: isTestnet ?? this.isTestnet,
       createdAt: createdAt ?? this.createdAt,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      isActive: isActive ?? this.isActive,
     );
   }
   
@@ -84,10 +134,169 @@ class WalletModel {
   bool get hasSecretKey => secretKey != null && secretKey!.isNotEmpty;
   String get displayBalance => balance.toStringAsFixed(7);
   String get shortPublicKey => hasWallet ? '${publicKey.substring(0, 6)}...${publicKey.substring(publicKey.length - 6)}' : '';
+  String get displayName => name.isNotEmpty ? name : 'Wallet ${shortPublicKey}';
+  String get networkType => isTestnet ? 'Testnet' : 'Mainnet';
   
   @override
   String toString() {
-    return 'WalletModel(publicKey: $shortPublicKey, balance: $displayBalance, isTestnet: $isTestnet)';
+    return 'WalletModel(id: $id, name: $name, publicKey: $shortPublicKey, balance: $displayBalance, isTestnet: $isTestnet, isActive: $isActive)';
+  }
+  
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is WalletModel && other.id == id;
+  }
+  
+  @override
+  int get hashCode => id.hashCode;
+}
+
+/// Multi-Wallet Manager Model
+/// Manages multiple wallets and their states
+class MultiWalletModel {
+  final List<WalletModel> wallets;
+  final String? activeWalletId;
+  
+  const MultiWalletModel({
+    required this.wallets,
+    this.activeWalletId,
+  });
+  
+  // Factory constructor for empty wallet list
+  factory MultiWalletModel.empty() {
+    return const MultiWalletModel(
+      wallets: [],
+      activeWalletId: null,
+    );
+  }
+  
+  // Factory constructor from JSON
+  factory MultiWalletModel.fromJson(Map<String, dynamic> json) {
+    final walletList = (json['wallets'] as List<dynamic>?)
+        ?.map((w) => WalletModel.fromJson(w as Map<String, dynamic>))
+        .toList() ?? [];
+    
+    return MultiWalletModel(
+      wallets: walletList,
+      activeWalletId: json['activeWalletId'] as String?,
+    );
+  }
+  
+  // Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'wallets': wallets.map((w) => w.toJson()).toList(),
+      'activeWalletId': activeWalletId,
+    };
+  }
+  
+  // Getters
+  bool get hasWallets => wallets.isNotEmpty;
+  bool get hasActiveWallet => activeWalletId != null && activeWallet != null;
+  int get walletCount => wallets.length;
+  
+  WalletModel? get activeWallet {
+    if (activeWalletId == null) return null;
+    try {
+      return wallets.firstWhere((w) => w.id == activeWalletId);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  List<WalletModel> get testnetWallets => wallets.where((w) => w.isTestnet).toList();
+  List<WalletModel> get mainnetWallets => wallets.where((w) => !w.isTestnet).toList();
+  
+  // Helper methods
+  bool containsWallet(String walletId) {
+    return wallets.any((w) => w.id == walletId);
+  }
+  
+  bool containsPublicKey(String publicKey) {
+    return wallets.any((w) => w.publicKey == publicKey);
+  }
+  
+  WalletModel? getWalletById(String walletId) {
+    try {
+      return wallets.firstWhere((w) => w.id == walletId);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  WalletModel? getWalletByPublicKey(String publicKey) {
+    try {
+      return wallets.firstWhere((w) => w.publicKey == publicKey);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  // Operations
+  MultiWalletModel addWallet(WalletModel wallet) {
+    final updatedWallets = List<WalletModel>.from(wallets);
+    updatedWallets.add(wallet);
+    
+    return MultiWalletModel(
+      wallets: updatedWallets,
+      activeWalletId: activeWalletId ?? wallet.id, // Set as active if first wallet
+    );
+  }
+  
+  MultiWalletModel removeWallet(String walletId) {
+    final updatedWallets = wallets.where((w) => w.id != walletId).toList();
+    String? newActiveWalletId = activeWalletId;
+    
+    // If removing active wallet, switch to first available wallet
+    if (activeWalletId == walletId) {
+      newActiveWalletId = updatedWallets.isNotEmpty ? updatedWallets.first.id : null;
+    }
+    
+    return MultiWalletModel(
+      wallets: updatedWallets,
+      activeWalletId: newActiveWalletId,
+    );
+  }
+  
+  MultiWalletModel updateWallet(WalletModel updatedWallet) {
+    final updatedWallets = wallets.map((w) {
+      return w.id == updatedWallet.id ? updatedWallet : w;
+    }).toList();
+    
+    return MultiWalletModel(
+      wallets: updatedWallets,
+      activeWalletId: activeWalletId,
+    );
+  }
+  
+  MultiWalletModel setActiveWallet(String walletId) {
+    return MultiWalletModel(
+      wallets: wallets,
+      activeWalletId: walletId,
+    );
+  }
+  
+  MultiWalletModel updateWalletBalance(String walletId, double newBalance) {
+    final updatedWallets = wallets.map((w) {
+      if (w.id == walletId) {
+        return w.copyWith(
+          balance: newBalance,
+          lastUpdated: DateTime.now(),
+        );
+      }
+      return w;
+    }).toList();
+    
+    return MultiWalletModel(
+      wallets: updatedWallets,
+      activeWalletId: activeWalletId,
+    );
+  }
+  
+  @override
+  String toString() {
+    return 'MultiWalletModel(walletCount: $walletCount, activeWalletId: $activeWalletId)';
   }
 }
 

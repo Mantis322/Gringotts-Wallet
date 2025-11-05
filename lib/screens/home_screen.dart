@@ -6,8 +6,8 @@ import '../app/routes.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/wallet_card.dart';
-import '../widgets/custom_button.dart';
 import '../widgets/payment_options_modal.dart';
+import '../widgets/wallet_selector.dart';
 
 /// Home Screen
 /// Main wallet dashboard with balance, transactions and quick actions
@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _refreshWallet() async {
     final walletProvider = Provider.of<WalletProvider>(context, listen: false);
     await walletProvider.refreshBalance();
-    await walletProvider.loadTransactionHistory();
+    await walletProvider.loadTransactions();
   }
 
   void _showPaymentOptions() {
@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SliverToBoxAdapter(
                       child: Column(
                         children: [
-                          _buildBalanceSection(walletProvider),
+                          _buildWalletSection(walletProvider),
                           const SizedBox(height: 24),
                           _buildQuickActions(),
                           const SizedBox(height: 32),
@@ -129,41 +129,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNoWalletState() {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.account_balance_wallet,
-              size: 80,
-              color: AppColors.textTertiary,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Wallet Found',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Create or import a wallet to get started',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            CustomButton(
-              text: 'Create Wallet',
-              onPressed: () => AppRoutes.push(context, AppRoutes.createWallet),
-              icon: Icon(Icons.add),
-            ),
-          ],
-        ),
+        padding: EdgeInsets.all(24),
+        child: WalletSelector(),
       ),
     );
   }
@@ -207,17 +176,32 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBalanceSection(WalletProvider walletProvider) {
-    return BalanceCard(
-      wallet: walletProvider.wallet,
-      isLoading: walletProvider.isLoading,
-      onRefresh: _refreshWallet,
-      onCopyAddress: () {
-        // Handle copy address action
-      },
-    ).animate(delay: 200.ms)
-        .slideY(begin: 0.3, duration: 600.ms)
-        .fadeIn(duration: 600.ms);
+  Widget _buildWalletSection(WalletProvider walletProvider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          // Wallet Selector
+          const WalletSelector().animate(delay: 200.ms)
+              .slideY(begin: 0.3, duration: 600.ms)
+              .fadeIn(duration: 600.ms),
+          
+          const SizedBox(height: 16),
+          
+          // Balance Card (existing functionality)
+          BalanceCard(
+            wallet: walletProvider.wallet,
+            isLoading: walletProvider.isLoading,
+            onRefresh: _refreshWallet,
+            onCopyAddress: () {
+              // Handle copy address action
+            },
+          ).animate(delay: 400.ms)
+              .slideY(begin: 0.3, duration: 600.ms)
+              .fadeIn(duration: 600.ms),
+        ],
+      ),
+    );
   }
 
   Widget _buildQuickActions() {

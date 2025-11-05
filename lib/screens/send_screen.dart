@@ -51,9 +51,10 @@ class _SendScreenState extends State<SendScreen> {
       return;
     }
 
-    final result = walletProvider.validateTransaction(
+    final result = TransactionService.validateTransaction(
       destinationAddress: _addressController.text.trim(),
       amount: _amountController.text.trim(),
+      currentBalance: walletProvider.balance,
       memo: _memoController.text.trim(),
     );
 
@@ -67,9 +68,10 @@ class _SendScreenState extends State<SendScreen> {
     final walletProvider = Provider.of<WalletProvider>(context, listen: false);
     
     // Final validation
-    final validation = walletProvider.validateTransaction(
+    final validation = TransactionService.validateTransaction(
       destinationAddress: _addressController.text.trim(),
       amount: _amountController.text.trim(),
+      currentBalance: walletProvider.balance,
       memo: _memoController.text.trim(),
     );
 

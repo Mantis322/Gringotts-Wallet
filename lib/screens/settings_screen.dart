@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../app/colors.dart';
+import '../app/theme/colors.dart';
 import '../app/routes.dart';
 import '../app/constants.dart';
+import '../models/wallet_model.dart';
 import '../providers/wallet_provider.dart';
 import '../services/storage_service.dart';
 import '../services/auth_service.dart';
@@ -250,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!confirmed) return;
 
     final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-    await walletProvider.clearWallet();
+    await walletProvider.clearAllWallets();
 
     if (mounted) {
       AppRoutes.pushAndClearStack(context, AppRoutes.onboarding);
@@ -372,6 +373,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title: 'Wallet',
           icon: Icons.account_balance_wallet,
           children: [
+            if (walletProvider.hasActiveWallet) ...[
+              _buildInfoTile(
+                'Active Wallet',
+                _getWalletDisplayName(walletProvider, walletProvider.activeWallet!),
+                subtitle: '${walletProvider.activeWallet?.publicKey.substring(0, 8)}...${walletProvider.activeWallet?.publicKey.substring(walletProvider.activeWallet!.publicKey.length - 8)}',
+                iconData: Icons.account_balance_wallet,
+              ),
+              _buildListTile(
+                'Manage Wallets',
+                'Rename, delete, or export wallets',
+                Icons.manage_accounts,
+                onTap: () => _showWalletManagement(),
+              ),
+            ],
             _buildInfoTile(
               'Network',
               walletProvider.selectedNetwork.toUpperCase(),
@@ -387,8 +402,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () => _showNetworkSelector(),
             ),
             _buildListTile(
-              'Clear Wallet',
-              'Remove wallet from this device',
+              'Clear All Wallets',
+              'Remove all wallets from this device',
               Icons.delete_outline,
               onTap: _clearWallet,
               isDestructive: true,
@@ -814,6 +829,359 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
+      ),
+    );
+  }
+
+  String _getWalletDisplayName(WalletProvider walletProvider, WalletModel wallet) {
+    final walletIndex = walletProvider.wallets.indexWhere((w) => w.id == wallet.id);
+    return 'Wallet ${walletIndex + 1}';
+  }
+
+  void _showWalletManagement() {
+    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _WalletManagementSheet(walletProvider: walletProvider),
+    );
+  }
+}
+
+/// Wallet Management Bottom Sheet
+class _WalletManagementSheet extends StatelessWidget {
+  final WalletProvider walletProvider;
+
+  const _WalletManagementSheet({required this.walletProvider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: AppColors.borderLight,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Text(
+                    'Manage Wallets',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+
+            // Wallet List
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: walletProvider.wallets.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final wallet = walletProvider.wallets[index];
+                  final isActive = walletProvider.activeWallet?.id == wallet.id;
+                  
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: isActive 
+                          ? AppColors.primaryPurple.withOpacity(0.1)
+                          : AppColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isActive 
+                            ? AppColors.primaryPurple
+                            : AppColors.borderLight,
+                        width: isActive ? 2 : 1,
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryPurple.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Icon(
+                          Icons.account_balance_wallet,
+                          color: AppColors.primaryPurple,
+                          size: 24,
+                        ),
+                      ),
+                      title: Text(
+                        'Wallet ${index + 1}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text(
+                            '${wallet.publicKey.substring(0, 8)}...${wallet.publicKey.substring(wallet.publicKey.length - 8)}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${wallet.displayBalance} XLM',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.primaryPurple,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (isActive) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryPurple,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'ACTIVE',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      trailing: PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+                        color: AppColors.surfaceCard,
+                        onSelected: (value) {
+                          Navigator.pop(context);
+                          switch (value) {
+                            case 'rename':
+                              _showRenameDialog(context, wallet);
+                              break;
+                            case 'export':
+                              _showExportDialog(context, wallet);
+                              break;
+                            case 'delete':
+                              if (!isActive) _showDeleteDialog(context, wallet);
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'rename',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, color: AppColors.textSecondary),
+                                const SizedBox(width: 8),
+                                Text('Rename', style: TextStyle(color: AppColors.textPrimary)),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'export',
+                            child: Row(
+                              children: [
+                                Icon(Icons.download, color: AppColors.textSecondary),
+                                const SizedBox(width: 8),
+                                Text('Export Secret Key', style: TextStyle(color: AppColors.textPrimary)),
+                              ],
+                            ),
+                          ),
+                          if (!isActive)
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red),
+                                  const SizedBox(width: 8),
+                                  Text('Delete', style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRenameDialog(BuildContext context, wallet) {
+    final nameController = TextEditingController(text: wallet.name);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceCard,
+        title: Text('Rename Wallet', style: TextStyle(color: AppColors.textPrimary)),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(
+            labelText: 'Wallet Name',
+            labelStyle: TextStyle(color: AppColors.textSecondary),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: AppColors.borderLight),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: AppColors.primaryPurple),
+            ),
+          ),
+          style: TextStyle(color: AppColors.textPrimary),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = nameController.text.trim();
+              if (newName.isNotEmpty && newName != wallet.name) {
+                // TODO: Implement wallet rename functionality
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Wallet rename feature coming soon!'),
+                    backgroundColor: AppColors.primaryPurple,
+                  ),
+                );
+              }
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showExportDialog(BuildContext context, wallet) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceCard,
+        title: Text('Export Secret Key', style: TextStyle(color: AppColors.textPrimary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'WARNING: Keep your secret key safe. Anyone with this key can access your wallet.',
+              style: TextStyle(
+                color: Colors.orange,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: SelectableText(
+                wallet.secretKey,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, wallet) {
+    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+    final walletIndex = walletProvider.wallets.indexWhere((w) => w.id == wallet.id);
+    final walletDisplayName = 'Wallet ${walletIndex + 1}';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceCard,
+        title: Text('Delete Wallet', style: TextStyle(color: Colors.red)),
+        content: Text(
+          'Are you sure you want to delete "$walletDisplayName"? This action cannot be undone. Make sure you have backed up your secret key.',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // TODO: Implement wallet delete functionality
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Wallet delete feature coming soon!'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

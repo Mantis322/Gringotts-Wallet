@@ -7,7 +7,7 @@ import '../providers/wallet_provider.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/wallet_card.dart';
 import '../services/storage_service.dart';
-import 'backup_mnemonic_screen.dart';
+import 'backup_secret_key_screen.dart';
 
 /// Create Wallet Screen
 /// Premium wallet creation interface with gradient background
@@ -20,6 +20,8 @@ class CreateWalletScreen extends StatefulWidget {
 
 class _CreateWalletScreenState extends State<CreateWalletScreen> {
   final TextEditingController _secretKeyController = TextEditingController();
+  final TextEditingController _walletNameController = TextEditingController(text: 'My Wallet');
+  final TextEditingController _importNameController = TextEditingController(text: 'Imported Wallet');
   bool _isCreatingWallet = false;
   bool _isImportingWallet = false;
   bool _showImportSection = false;
@@ -35,22 +37,28 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   }
 
   Future<void> _createNewWallet() async {
+    final walletName = _walletNameController.text.trim();
+    if (walletName.isEmpty) {
+      _showSnackBar('Please enter a wallet name', Colors.red);
+      return;
+    }
+
     setState(() => _isCreatingWallet = true);
     
     try {
       final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-      final success = await walletProvider.createWallet();
+      final success = await walletProvider.createWallet(name: walletName);
       
       if (success && mounted) {
-        // Mnemonic'i al ve backup ekranını göster
-        final mnemonic = walletProvider.wallet?.mnemonic?.split(' ') ?? [];
-        if (mnemonic.isNotEmpty) {
-          _showBackupMnemonicScreen(mnemonic);
+        // Secret key'i al ve backup ekranını göster
+        final secretKey = walletProvider.wallet?.secretKey ?? '';
+        if (secretKey.isNotEmpty) {
+          _showBackupSecretKeyScreen(secretKey);
         } else {
           _navigateToHome();
         }
       } else if (mounted) {
-        _showErrorDialog('Failed to create wallet. Please try again.');
+        _showSnackBar('Failed to create wallet', Colors.red);
       }
     } catch (e) {
       if (mounted) {
@@ -63,11 +71,11 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
     }
   }
 
-  void _showBackupMnemonicScreen(List<String> mnemonic) {
+  void _showBackupSecretKeyScreen(String secretKey) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => BackupMnemonicScreen(
-          mnemonic: mnemonic,
+        builder: (context) => BackupSecretKeyScreen(
+          secretKey: secretKey,
           onContinue: () {
             Navigator.of(context).pop();
             _navigateToHome();
@@ -83,11 +91,21 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       return;
     }
 
+    final walletName = _importNameController.text.trim();
+    if (walletName.isEmpty) {
+      _showSnackBar('Please enter a wallet name', Colors.red);
+      return;
+    }
+
     setState(() => _isImportingWallet = true);
     
     try {
       final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-      final success = await walletProvider.importWallet(_secretKeyController.text.trim());
+      final success = await walletProvider.importWalletFromSecretKey(
+        secretKey: _secretKeyController.text.trim(),
+        name: walletName,
+        setAsActive: true,
+      );
       
       if (success && mounted) {
         _navigateToHome();
@@ -138,9 +156,24 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
     );
   }
 
+  void _showSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _secretKeyController.dispose();
+    _walletNameController.dispose();
+    _importNameController.dispose();
     super.dispose();
   }
 
@@ -268,6 +301,49 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   Widget _buildWalletOptions() {
     return Column(
       children: [
+        // Wallet Name Input
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Wallet Name',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _walletNameController,
+                decoration: InputDecoration(
+                  hintText: 'Enter wallet name',
+                  hintStyle: TextStyle(color: AppColors.textSecondary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.borderLight),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.primaryPurple),
+                  ),
+                  filled: true,
+                  fillColor: AppColors.backgroundDark,
+                ),
+                style: TextStyle(color: AppColors.textPrimary),
+              ),
+            ],
+          ),
+        ).animate(delay: 600.ms),
+
+        const SizedBox(height: 20),
+
         WalletCard(
           title: 'Create New Wallet',
           description: 'Generate a new wallet with secure backup phrase',
@@ -362,6 +438,28 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
           ),
 
           const SizedBox(height: 20),
+
+          TextField(
+            controller: _importNameController,
+            decoration: InputDecoration(
+              labelText: 'Wallet Name',
+              hintText: 'Enter a name for this wallet',
+              labelStyle: TextStyle(color: AppColors.textSecondary),
+              hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.borderLight),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.primaryPurple),
+              ),
+              prefixIcon: Icon(Icons.label_outline, color: AppColors.primaryPurple),
+            ),
+            style: TextStyle(color: AppColors.textPrimary),
+          ),
+
+          const SizedBox(height: 16),
 
           TextField(
             controller: _secretKeyController,

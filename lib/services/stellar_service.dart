@@ -1,6 +1,6 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
-import 'package:bip39/bip39.dart' as bip39;
 import '../models/wallet_model.dart';
 import '../app/constants.dart';
 
@@ -35,28 +35,40 @@ class StellarService {
   /// Create a new wallet
   static Future<WalletModel> createWallet() async {
     try {
-      // Generate mnemonic
-      final mnemonic = bip39.generateMnemonic();
-      
-      // Generate random keypair
+      // Generate random keypair (no mnemonic needed)
       final keyPair = KeyPair.random();
       
-      final wallet = WalletModel(
+      final wallet = WalletModel.create(
+        name: 'New Wallet',
         publicKey: keyPair.accountId,
         secretKey: keyPair.secretSeed,
-        mnemonic: mnemonic,
-        balance: 0.0,
+        mnemonic: null, // No longer using mnemonics
         isTestnet: currentNetwork.isTestnet,
-        createdAt: DateTime.now(),
-        lastUpdated: DateTime.now(),
       );
 
       // Fund account if on testnet
       if (currentNetwork.isTestnet) {
-        await _fundTestnetAccount(keyPair.accountId);
-        await Future.delayed(const Duration(seconds: 2)); // Wait for funding
-        final balance = await getBalance(keyPair.accountId);
-        return wallet.copyWith(balance: balance);
+        try {
+          await _fundTestnetAccount(keyPair.accountId);
+          // Wait a bit for funding to complete
+          await Future.delayed(const Duration(seconds: 3));
+          
+          // Try to get balance with timeout
+          try {
+            final balance = await getBalance(keyPair.accountId).timeout(
+              const Duration(seconds: 10),
+            );
+            return wallet.copyWith(balance: balance);
+          } catch (e) {
+            print('Balance check failed, but wallet created: $e');
+            // Return wallet with 0 balance if balance check fails
+            return wallet.copyWith(balance: 0.0);
+          }
+        } catch (e) {
+          print('Testnet funding failed, but wallet created: $e');
+          // Return wallet with 0 balance if funding fails
+          return wallet.copyWith(balance: 0.0);
+        }
       }
 
       return wallet;
@@ -71,15 +83,13 @@ class StellarService {
       final keyPair = KeyPair.fromSecretSeed(secretKey);
       final balance = await getBalance(keyPair.accountId);
       
-      return WalletModel(
+      return WalletModel.create(
+        name: 'Imported Wallet',
         publicKey: keyPair.accountId,
         secretKey: secretKey,
         mnemonic: null, // Import edilen cüzdan için mnemonic yok
-        balance: balance,
         isTestnet: currentNetwork.isTestnet,
-        createdAt: DateTime.now(),
-        lastUpdated: DateTime.now(),
-      );
+      ).copyWith(balance: balance);
     } catch (e) {
       throw Exception('Failed to import wallet: $e');
     }
@@ -88,7 +98,9 @@ class StellarService {
   /// Get account balance
   static Future<double> getBalance(String publicKey) async {
     try {
-      final account = await sdk.accounts.account(publicKey);
+      final account = await sdk.accounts.account(publicKey).timeout(
+        const Duration(seconds: 15),
+      );
       
       for (final balance in account.balances) {
         if (balance.assetType == 'native') {
@@ -98,7 +110,13 @@ class StellarService {
       
       return 0.0;
     } catch (e) {
-      // Account might not exist yet
+      // Account might not exist yet or network timeout
+      if (e.toString().contains('404') || e.toString().contains('not_found')) {
+        debugPrint('Account $publicKey not found on network - new account with 0 balance');
+        return 0.0;
+      }
+      
+      debugPrint('Balance check failed for $publicKey: $e');
       return 0.0;
     }
   }

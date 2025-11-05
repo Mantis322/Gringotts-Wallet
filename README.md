@@ -35,11 +35,12 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 ### 🔐 **Vault-Level Security**
 - **🛡️ Military-Grade Encryption**: AES-256 encryption for all sensitive data
 - **🔑 Secure Key Management**: Hardware-backed secure storage
-- **📝 Mnemonic Backup System**: BIP-39 compliant 12-word recovery phrases
+- **� Secret Key System**: Secure secret key-based wallet management
 - **🚫 Zero Cloud Storage**: All keys remain on your device
 - **🔒 Biometric Protection**: Fingerprint & Face ID authentication ✅
 - **📱 PIN Code Security**: 6-digit PIN with secure hashing ✅
 - **🔐 App Lock Protection**: Authentication required on app launch ✅
+- **🏦 Multi-Wallet Support**: Manage multiple wallets seamlessly ✅
 
 </td>
 <td width="50%">
@@ -52,6 +53,10 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 - **🔄 Real-time Balance Updates**: Live network synchronization
 - **💳 Multiple Payment Methods**: QR Code, NFC, and traditional transfers
 - **🚀 Smart Payment Options**: Intuitive payment selection interface
+- **🏦 Multi-Wallet Management**: Create, import, and switch between wallets ✅
+- **🔑 Secret Key Import/Export**: Secure wallet portability ✅
+- **📝 Custom Wallet Naming**: Organize wallets with custom names ✅
+- **⚙️ Advanced Wallet Management**: Rename, delete, export features ✅
 
 </td>
 </tr>
@@ -88,38 +93,82 @@ graph TB
     subgraph "Presentation Layer"
         A[Splash Screen] --> B[Onboarding]
         B --> C[Create/Import Wallet]
-        C --> D[Mnemonic Backup]
+        C --> D[Secret Key Backup]
         D --> E[Home Dashboard]
         E --> F[Send Transaction]
         E --> G[Settings]
+        E --> H[Wallet Selector]
+        H --> I[Switch Wallet]
+        H --> J[Add New Wallet]
     end
     
     subgraph "Business Logic Layer"
         H[Wallet Provider] --> I[Stellar Service]
         H --> J[Storage Service]
         H --> K[Transaction Service]
+        L[Multi-Wallet Model] --> H
     end
     
     subgraph "Data Layer"
-        L[Secure Storage] --> M[Private Keys]
-        L --> N[Mnemonic Phrases]
-        O[Shared Preferences] --> P[App Settings]
-        Q[Stellar Network] --> R[Horizon API]
+        M[Secure Storage] --> N[Private Keys]
+        M --> O[Secret Keys]
+        P[Shared Preferences] --> Q[App Settings]
+        P --> R[Multi-Wallet Data]
+        S[Stellar Network] --> T[Horizon API]
     end
     
     E --> H
     F --> H
     G --> H
-    I --> Q
-    J --> L
-    J --> O
+    I --> S
+    J --> M
+    J --> P
 ```
 
 ---
 
 ## 🆕 Latest Updates
 
-### � Security Enhancement (v1.2.0)
+### 🏦 Multi-Wallet System (v1.3.0)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **Multi-Wallet Support** | Manage multiple wallets in one app | ✅ Live |
+| **Wallet Switching** | Seamless switching between wallets | ✅ Live |
+| **Secret Key System** | Secret key-based wallet management | ✅ Live |
+| **Wallet Import/Export** | Import wallets via secret key | ✅ Live |
+| **Wallet Selector UI** | Enhanced wallet selection interface | ✅ Live |
+| **Custom Wallet Naming** | Name wallets during creation/import | ✅ Live |
+| **Wallet Management** | Rename, delete, export wallet features | ✅ Live |
+
+</div>
+
+#### 🏦 Enhanced Multi-Wallet Flow
+
+```mermaid
+graph LR
+    A[Home Screen] --> B{Wallet Selector}
+    B --> C[Active Wallet - Wallet 1] 
+    B --> D[Switch Wallet] --> E[Select from List]
+    B --> F[Add Wallet] --> G{Add Options}
+    G --> H[Create New] --> H1[Enter Name] --> I[Secret Key Backup]
+    G --> J[Import Existing] --> J1[Enter Name & Key] --> K[Import Complete]
+    E --> L[New Active Wallet]
+    I --> L
+    K --> L
+    
+    subgraph "Wallet Management"
+        M[Settings] --> N[Manage Wallets]
+        N --> O[Wallet 1, Wallet 2, Wallet 3...]
+        O --> P[Export Secret Key]
+        O --> Q[Rename Wallet]
+        O --> R[Delete Wallet]
+    end
+```
+
+### 🔐 Security Enhancement (v1.2.0)
 
 <div align="center">
 
@@ -179,6 +228,47 @@ graph LR
 - **🚧 Development Indicators**: Clear messaging for upcoming features
 - **🔄 Backward Compatibility**: Existing functionality preserved
 
+### 🏦 Wallet Management System (v1.3.1)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **Custom Wallet Naming** | Name wallets during creation/import | ✅ Live |
+| **Wallet Display System** | Display as "Wallet 1", "Wallet 2", etc. | ✅ Live |
+| **Comprehensive Management** | Settings-based wallet management | ✅ Live |
+| **Secret Key Export** | Secure export with safety warnings | ✅ Live |
+| **Wallet Operations** | Rename, delete, export capabilities | 🔄 Development |
+
+</div>
+
+#### 🎯 Wallet Management Flow
+
+```mermaid
+graph LR
+    A[Settings] --> B[Manage Wallets]
+    B --> C[Wallet List]
+    C --> D[Wallet 1 - Active]
+    C --> E[Wallet 2]
+    C --> F[Wallet 3]
+    
+    D --> G[Export Secret Key]
+    E --> H[⋮ Menu] --> H1[Rename]
+    E --> H2[Export]
+    E --> H3[Delete]
+    
+    F --> I[Switch to Active]
+    F --> J[Manage Options]
+```
+
+#### ✨ Management Features
+
+- **📝 Smart Naming**: Automatic "Wallet X" display system for easy identification
+- **🔐 Secure Export**: One-click secret key export with security warnings
+- **⚙️ Context Actions**: Per-wallet management through popup menus
+- **🛡️ Safety First**: Active wallet protection (cannot delete active wallet)
+- **🎨 Visual Indicators**: Clear active wallet highlighting and status badges
+
 ---
 
 ## 📱 Application Flow
@@ -187,7 +277,7 @@ graph LR
 <tr>
 <th width="25%">🚀 Onboarding</th>
 <th width="25%">🔐 Wallet Creation</th>
-<th width="25%">📝 Backup Process</th>
+<th width="25%">� Backup Process</th>
 <th width="25%">💰 Main Dashboard</th>
 </tr>
 <tr>
@@ -205,11 +295,13 @@ graph LR
 <li>Import existing wallet</li>
 <li>Network selection</li>
 <li>Security setup</li>
+<li>Multi-wallet support</li>
+<li>Custom wallet naming</li>
 </ul>
 </td>
 <td>
 <ul>
-<li>Mnemonic display</li>
+<li>Secret key display</li>
 <li>Security warnings</li>
 <li>User confirmation</li>
 <li>Backup verification</li>
@@ -222,6 +314,8 @@ graph LR
 <li>Payment options menu</li>
 <li>Quick actions</li>
 <li>Settings access</li>
+<li>Wallet switching</li>
+<li>Wallet management</li>
 </ul>
 </td>
 </tr>
@@ -263,6 +357,7 @@ graph LR
 │   │       └── app_theme.dart          # Material 3 theme
 │   ├── 📊 models/
 │   │   ├── wallet_model.dart           # Wallet data structure
+│   │   ├── multi_wallet_model.dart     # Multi-wallet management
 │   │   └── transaction_model.dart      # Transaction data
 │   ├── 🔧 services/
 │   │   ├── stellar_service.dart        # Blockchain operations
@@ -275,7 +370,7 @@ graph LR
 │   │   ├── splash_screen.dart          # Animated loading
 │   │   ├── onboarding_screen.dart      # Feature introduction
 │   │   ├── create_wallet_screen.dart   # Wallet setup
-│   │   ├── backup_mnemonic_screen.dart # Seed phrase backup
+│   │   ├── backup_secret_key_screen.dart # Secret key backup
 │   │   ├── home_screen.dart            # Main dashboard
 │   │   ├── send_screen.dart            # Transaction sending
 │   │   ├── settings_screen.dart        # App configuration
@@ -285,7 +380,7 @@ graph LR
 │   ├── 🧩 widgets/
 │   │   ├── custom_button.dart          # Reusable buttons
 │   │   ├── balance_card.dart           # Balance display
-│   │   ├── wallet_card.dart            # Wallet selection
+│   │   ├── wallet_selector.dart        # Multi-wallet selector
 │   │   ├── transaction_card.dart       # Transaction items
 │   │   ├── payment_options_modal.dart  # Payment method selector
 │   │   └── auth_guard.dart             # Authentication wrapper
@@ -334,10 +429,11 @@ graph LR
 |----------------|----------------|--------|
 | **🔐 Key Storage** | Hardware-backed secure storage | ✅ Implemented |
 | **🔑 Encryption** | AES-256 encryption for all sensitive data | ✅ Implemented |
-| **📝 Mnemonic Protection** | BIP-39 compliant, securely stored | ✅ Implemented |
+| **� Secret Key Management** | Secure secret key-based system | ✅ Implemented |
+| **🏦 Multi-Wallet Support** | Multiple wallets with secure switching | ✅ Implemented |
 | **🚫 Network Isolation** | Private keys never transmitted | ✅ Implemented |
 | **🔒 Biometric Auth** | Fingerprint & Face ID integration | ✅ Implemented |
-| **� PIN Protection** | 6-digit PIN with secure hashing | ✅ Implemented |
+| **📱 PIN Protection** | 6-digit PIN with secure hashing | ✅ Implemented |
 | **🛡️ App Lock** | Authentication required on launch | ✅ Implemented |
 | **🎯 App Attestation** | Runtime application verification | 🔄 Planned |
 
@@ -545,7 +641,7 @@ sequenceDiagram
     
     App->>Provider: Create Wallet
     Provider->>StellarService: Generate KeyPair
-    StellarService->>StellarService: Create Mnemonic
+    StellarService->>StellarService: Generate Secret Key
     StellarService->>HorizonAPI: Fund Account (Testnet)
     HorizonAPI->>StellarNetwork: Submit Transaction
     StellarNetwork-->>HorizonAPI: Transaction Response
@@ -576,7 +672,12 @@ sequenceDiagram
 • Multi-payment options interface<br>
 • Biometric authentication<br>
 • PIN code protection<br>
-• App lock security
+• App lock security<br>
+• Multi-wallet support<br>
+• Secret key system<br>
+• Wallet import/export<br>
+• Custom wallet naming<br>
+• Wallet management (rename, delete, export)
 </td>
 <td>✅ Complete</td>
 </tr>
@@ -657,10 +758,16 @@ We welcome contributions from the magical developer community!
 <sub>Flutter & Blockchain Expert</sub>
 </td>
 <td align="center">
-<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvNoVYGRSKOA_O7qQ9eANPXSdEdD7DddS2GA&s" width="100px;" alt="Goblin Manager"/><br>
+<img src="https://via.placeholder.com/100x100/6366F1/FFFFFF?text=GM" width="100px;" alt="Goblin Manager"/><br>
 <sub><b>Griphook</b></sub><br>
 <sub>Lead Vault Keeper</sub><br>
 <sub>Security Consultant</sub>
+</td>
+<td align="center">
+<img src="https://via.placeholder.com/100x100/FBBF24/000000?text=SA" width="100px;" alt="Security Architect"/><br>
+<sub><b>Ragnok</b></sub><br>
+<sub>Security Architect</sub><br>
+<sub>Cryptography Expert</sub>
 </td>
 </tr>
 </table>
@@ -691,6 +798,28 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Mantis322/gringotts-wallet/issues)
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Mantis322/gringotts-wallet/discussions)
 - 🔒 **Security Issues**: security@gringotts-wallet.com
+
+### 🆕 Latest Release Highlights (v1.3.1)
+
+<div align="center">
+
+| 🎯 **Feature Category** | 🚀 **New Capabilities** | 📊 **Impact** |
+|-------------------------|-------------------------|---------------|
+| **🏦 Wallet Management** | Custom naming, smart display (Wallet 1, 2, 3...) | Enhanced organization |
+| **⚙️ Settings Integration** | Comprehensive wallet management panel | Centralized control |
+| **🔐 Security Features** | One-click secret key export with warnings | Improved backup workflow |
+| **🎨 User Experience** | Visual active wallet indicators, context menus | Intuitive navigation |
+| **🛡️ Safety Systems** | Active wallet protection, confirmation dialogs | Prevented data loss |
+
+</div>
+
+#### 🎯 What's New in Multi-Wallet System
+
+- **📝 Smart Naming**: Wallets display as "Wallet 1", "Wallet 2" for easy identification
+- **⚙️ Management Hub**: Access all wallet operations from Settings → Manage Wallets
+- **🔐 Secure Export**: Export secret keys with built-in security warnings
+- **🎨 Enhanced UI**: Beautiful bottom sheets with visual indicators
+- **🛡️ Protection**: Cannot delete active wallets, preventing accidents
 
 ---
 

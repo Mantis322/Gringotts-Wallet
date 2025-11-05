@@ -6,11 +6,11 @@ import '../services/storage_service.dart';
 import '../services/transaction_service.dart';
 import '../app/constants.dart';
 
-/// Wallet Provider
-/// Manages wallet state and operations using Provider pattern
+/// Multi-Wallet Provider
+/// Manages multiple wallets state and operations using Provider pattern
 class WalletProvider with ChangeNotifier {
   // Private state variables
-  WalletModel? _wallet;
+  MultiWalletModel _multiWallet = MultiWalletModel.empty();
   bool _isLoading = false;
   bool _isInitialized = false;
   String? _error;
@@ -18,8 +18,16 @@ class WalletProvider with ChangeNotifier {
   bool _isLoadingTransactions = false;
   String _selectedNetwork = AppConstants.defaultNetwork;
   
-  // Getters
-  WalletModel? get wallet => _wallet;
+  // Getters for multi-wallet
+  MultiWalletModel get multiWallet => _multiWallet;
+  List<WalletModel> get wallets => _multiWallet.wallets;
+  WalletModel? get activeWallet => _multiWallet.activeWallet;
+  bool get hasWallets => _multiWallet.hasWallets;
+  bool get hasActiveWallet => _multiWallet.hasActiveWallet;
+  int get walletCount => _multiWallet.walletCount;
+  
+  // Getters for current active wallet (backward compatibility)
+  WalletModel? get wallet => activeWallet;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   String? get error => _error;
@@ -27,70 +35,101 @@ class WalletProvider with ChangeNotifier {
   bool get isLoadingTransactions => _isLoadingTransactions;
   String get selectedNetwork => _selectedNetwork;
   
-  bool get hasWallet => _wallet != null && _wallet!.hasWallet;
+  bool get hasWallet => hasActiveWallet;
   bool get isTestnet => _selectedNetwork == AppConstants.networkTestnet;
-  double get balance => _wallet?.balance ?? 0.0;
-  String get publicKey => _wallet?.publicKey ?? '';
-  String get displayBalance => _wallet?.displayBalance ?? '0.0000000';
+  double get balance => activeWallet?.balance ?? 0.0;
+  String get publicKey => activeWallet?.publicKey ?? '';
+  String get displayBalance => activeWallet?.displayBalance ?? '0.0000000';
   
   /// Initialize wallet provider
   Future<void> initialize() async {
     if (_isInitialized) return;
     
-    // Set loading state without notifying listeners during build
-    _isLoading = true;
-    _error = null;
+    _setLoading(true);
+    _setError(null);
     
     try {
       // Load saved network preference
       _selectedNetwork = await StorageService.getSelectedNetwork();
       StellarService.initialize(useTestnet: isTestnet);
       
-      // Check if wallet exists
-      final hasStoredWallet = await StorageService.hasWallet();
+      // Load multi-wallet data
+      _multiWallet = await StorageService.getMultiWalletData();
       
-      if (hasStoredWallet) {
-        await _loadWalletFromStorage();
+      // If we have wallets, load active wallet data
+      if (hasActiveWallet) {
+        await _loadActiveWalletData();
       }
       
       _isInitialized = true;
+      debugPrint('WalletProvider: Initialized with ${walletCount} wallets');
+      
     } catch (e) {
-      _error = 'Failed to initialize wallet: $e';
+      _setError('Failed to initialize wallet: ${e.toString()}');
+      debugPrint('WalletProvider initialization error: $e');
     } finally {
-      _isLoading = false;
-      // Only notify listeners after initialization is complete
-      notifyListeners();
+      _setLoading(false);
     }
   }
   
-  /// Create new wallet
-  Future<bool> createWallet() async {
-    _setLoading(true);
-    _clearError();
+  /// Load active wallet data (balance and transactions)
+  Future<void> _loadActiveWalletData() async {
+    if (!hasActiveWallet) return;
     
     try {
-      // Create wallet via Stellar service
-      final newWallet = await StellarService.createWallet();
+      // Load balance
+      await refreshBalance();
       
-      // Save to secure storage
-      await StorageService.savePublicKey(newWallet.publicKey);
-      if (newWallet.secretKey != null) {
-        await StorageService.saveSecretKey(newWallet.secretKey!);
-      }
-      if (newWallet.mnemonic != null) {
-        await StorageService.saveMnemonic(newWallet.mnemonic!);
-      }
+      // Load transactions
+      await loadTransactions();
       
-      // Update state
-      _wallet = newWallet;
-      notifyListeners();
-      
-      // Load transaction history
-      await loadTransactionHistory();
-      
-      return true;
     } catch (e) {
-      _setError('Failed to create wallet: $e');
+      debugPrint('Error loading active wallet data: $e');
+    }
+  }
+  
+  /// Create a new wallet
+  Future<bool> createWallet({
+    String name = 'New Wallet',
+    bool setAsActive = true,
+  }) async {
+    _setLoading(true);
+    _setError(null);
+    
+    try {
+      // Generate new wallet using existing StellarService
+      final walletModel = await StellarService.createWallet();
+      
+      // Create wallet model with custom name and ID
+      final newWallet = WalletModel.create(
+        name: name,
+        publicKey: walletModel.publicKey,
+        secretKey: walletModel.secretKey,
+        mnemonic: walletModel.mnemonic,
+        isTestnet: isTestnet,
+        isActive: setAsActive,
+      ).copyWith(balance: walletModel.balance);
+      
+      // Add to multi-wallet
+      _multiWallet = _multiWallet.addWallet(newWallet);
+      
+      // Save to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+      
+      // Set as active if requested
+      if (setAsActive) {
+        // Just set as active without reloading data since we already have fresh data
+        _multiWallet = _multiWallet.setActiveWallet(newWallet.id);
+        await StorageService.saveMultiWalletData(_multiWallet);
+        notifyListeners();
+      }
+      
+      debugPrint('WalletProvider: Created new wallet: ${newWallet.displayName}');
+      return true;
+      
+    } catch (e) {
+      _setError('Failed to create wallet: ${e.toString()}');
+      debugPrint('Create wallet error: $e');
       return false;
     } finally {
       _setLoading(false);
@@ -98,83 +137,213 @@ class WalletProvider with ChangeNotifier {
   }
   
   /// Import wallet from secret key
-  Future<bool> importWallet(String secretKey) async {
+  Future<bool> importWalletFromSecretKey({
+    required String secretKey,
+    String name = 'Imported Wallet',
+    bool setAsActive = true,
+  }) async {
     _setLoading(true);
-    _clearError();
+    _setError(null);
     
     try {
-      // Validate secret key
-      if (!StellarService.isValidSecretKey(secretKey)) {
-        throw Exception('Invalid secret key format');
+      // Import from secret key using existing StellarService
+      final walletModel = await StellarService.importWallet(secretKey);
+      
+      // Check if wallet already exists
+      if (_multiWallet.containsPublicKey(walletModel.publicKey)) {
+        _setError('Wallet already exists');
+        return false;
       }
       
-      // Import wallet via Stellar service
-      final importedWallet = await StellarService.importWallet(secretKey);
+      // Create wallet model with custom name and ID
+      final importedWallet = WalletModel.create(
+        name: name,
+        publicKey: walletModel.publicKey,
+        secretKey: secretKey,
+        mnemonic: null, // No mnemonic when importing from secret key
+        isTestnet: isTestnet,
+        isActive: setAsActive,
+      ).copyWith(balance: walletModel.balance);
       
-      // Save to secure storage
-      await StorageService.savePublicKey(importedWallet.publicKey);
-      await StorageService.saveSecretKey(secretKey);
+      // Add to multi-wallet
+      _multiWallet = _multiWallet.addWallet(importedWallet);
       
-      // Update state
-      _wallet = importedWallet;
-      notifyListeners();
+      // Save to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
       
-      // Load transaction history
-      await loadTransactionHistory();
+      // Set as active if requested
+      if (setAsActive) {
+        // Just set as active without reloading data since we already have fresh data
+        _multiWallet = _multiWallet.setActiveWallet(importedWallet.id);
+        await StorageService.saveMultiWalletData(_multiWallet);
+        notifyListeners();
+      }
       
+      debugPrint('WalletProvider: Imported wallet from secret key: ${importedWallet.displayName}');
       return true;
+      
     } catch (e) {
-      _setError('Failed to import wallet: $e');
+      _setError('Failed to import wallet: ${e.toString()}');
+      debugPrint('Import from secret key error: $e');
       return false;
     } finally {
       _setLoading(false);
     }
   }
   
-  /// Load wallet from storage
-  Future<void> _loadWalletFromStorage() async {
+  /// Set active wallet
+  Future<void> setActiveWallet(String walletId) async {
     try {
-      final publicKey = await StorageService.getPublicKey();
-      final secretKey = await StorageService.getSecretKey();
-      
-      if (publicKey != null) {
-        // Get current balance
-        final balance = await StellarService.getBalance(publicKey);
-        
-        _wallet = WalletModel(
-          publicKey: publicKey,
-          secretKey: secretKey,
-          balance: balance,
-          isTestnet: isTestnet,
-          createdAt: DateTime.now(), // We don't store creation date
-          lastUpdated: DateTime.now(),
-        );
-        
-        notifyListeners();
-        
-        // Load transaction history
-        await loadTransactionHistory();
+      if (!_multiWallet.containsWallet(walletId)) {
+        throw Exception('Wallet not found');
       }
+      
+      // Update multi-wallet with new active wallet
+      _multiWallet = _multiWallet.setActiveWallet(walletId);
+      
+      // Save to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+      
+      // Load new active wallet data
+      await _loadActiveWalletData();
+      
+      debugPrint('WalletProvider: Set active wallet: $walletId');
+      notifyListeners();
+      
     } catch (e) {
-      _setError('Failed to load wallet: $e');
+      _setError('Failed to set active wallet: ${e.toString()}');
+      debugPrint('Set active wallet error: $e');
     }
   }
   
-  /// Refresh wallet balance
-  Future<void> refreshBalance() async {
-    if (!hasWallet) return;
+  /// Remove wallet
+  Future<bool> removeWallet(String walletId) async {
+    if (walletCount <= 1) {
+      _setError('Cannot remove the last wallet');
+      return false;
+    }
     
     try {
-      final newBalance = await StellarService.getBalance(_wallet!.publicKey);
+      // Remove from multi-wallet
+      _multiWallet = _multiWallet.removeWallet(walletId);
       
-      _wallet = _wallet!.copyWith(
-        balance: newBalance,
+      // Save to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+      
+      // If active wallet was removed, load new active wallet data
+      if (hasActiveWallet) {
+        await _loadActiveWalletData();
+      }
+      
+      debugPrint('WalletProvider: Removed wallet: $walletId');
+      notifyListeners();
+      return true;
+      
+    } catch (e) {
+      _setError('Failed to remove wallet: ${e.toString()}');
+      debugPrint('Remove wallet error: $e');
+      return false;
+    }
+  }
+  
+  /// Update wallet name
+  Future<bool> updateWalletName(String walletId, String newName) async {
+    try {
+      final wallet = _multiWallet.getWalletById(walletId);
+      if (wallet == null) {
+        throw Exception('Wallet not found');
+      }
+      
+      final updatedWallet = wallet.copyWith(
+        name: newName,
         lastUpdated: DateTime.now(),
       );
       
+      _multiWallet = _multiWallet.updateWallet(updatedWallet);
+      
+      // Save to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+      
+      debugPrint('WalletProvider: Updated wallet name: $walletId -> $newName');
       notifyListeners();
+      return true;
+      
     } catch (e) {
-      debugPrint('Failed to refresh balance: $e');
+      _setError('Failed to update wallet name: ${e.toString()}');
+      debugPrint('Update wallet name error: $e');
+      return false;
+    }
+  }
+  
+  /// Refresh balance for active wallet
+  Future<void> refreshBalance() async {
+    if (!hasActiveWallet) return;
+    
+    try {
+      final balance = await StellarService.getBalance(activeWallet!.publicKey);
+      
+      // Update wallet with new balance
+      final updatedWallet = activeWallet!.copyWith(
+        balance: balance,
+        lastUpdated: DateTime.now(),
+      );
+      
+      _multiWallet = _multiWallet.updateWallet(updatedWallet);
+      
+      // Save to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+      
+      notifyListeners();
+      
+    } catch (e) {
+      debugPrint('Error refreshing balance: $e');
+    }
+  }
+  
+  /// Refresh balance for all wallets
+  Future<void> refreshAllWalletBalances() async {
+    if (!hasWallets) return;
+    
+    try {
+      for (final wallet in wallets) {
+        try {
+          final balance = await StellarService.getBalance(wallet.publicKey);
+          
+          final updatedWallet = wallet.copyWith(
+            balance: balance,
+            lastUpdated: DateTime.now(),
+          );
+          
+          _multiWallet = _multiWallet.updateWallet(updatedWallet);
+        } catch (e) {
+          debugPrint('Error refreshing balance for wallet ${wallet.id}: $e');
+        }
+      }
+      
+      // Save to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+      notifyListeners();
+      
+    } catch (e) {
+      debugPrint('Error refreshing all wallet balances: $e');
+    }
+  }
+  
+  /// Load transactions for active wallet
+  Future<void> loadTransactions() async {
+    if (!hasActiveWallet) return;
+    
+    _isLoadingTransactions = true;
+    notifyListeners();
+    
+    try {
+      _transactions = await StellarService.getTransactionHistory(activeWallet!.publicKey);
+    } catch (e) {
+      debugPrint('Error loading transactions: $e');
+      _transactions = [];
+    } finally {
+      _isLoadingTransactions = false;
+      notifyListeners();
     }
   }
   
@@ -184,17 +353,17 @@ class WalletProvider with ChangeNotifier {
     required double amount,
     String memo = '',
   }) async {
-    if (!hasWallet || _wallet!.secretKey == null) {
-      _setError('No wallet available');
+    if (!hasActiveWallet || !activeWallet!.hasSecretKey) {
+      _setError('No active wallet or secret key');
       return false;
     }
     
     _setLoading(true);
-    _clearError();
+    _setError(null);
     
     try {
       final result = await TransactionService.sendTransaction(
-        secretKey: _wallet!.secretKey!,
+        secretKey: activeWallet!.secretKey!,
         destinationAddress: destinationAddress,
         amount: amount,
         memo: memo,
@@ -203,92 +372,74 @@ class WalletProvider with ChangeNotifier {
       if (result.success) {
         // Refresh balance and transactions
         await refreshBalance();
-        await loadTransactionHistory();
+        await loadTransactions();
         return true;
       } else {
         _setError(result.error ?? 'Transaction failed');
         return false;
       }
+      
     } catch (e) {
-      _setError('Failed to send transaction: $e');
+      _setError('Transaction error: ${e.toString()}');
+      debugPrint('Send transaction error: $e');
       return false;
     } finally {
       _setLoading(false);
     }
   }
   
-  /// Load transaction history
-  Future<void> loadTransactionHistory() async {
-    if (!hasWallet) return;
-    
-    _isLoadingTransactions = true;
-    notifyListeners();
-    
-    try {
-      final history = await StellarService.getTransactionHistory(_wallet!.publicKey);
-      _transactions = history;
-    } catch (e) {
-      debugPrint('Failed to load transaction history: $e');
-    } finally {
-      _isLoadingTransactions = false;
-      notifyListeners();
-    }
-  }
-  
   /// Switch network
   Future<void> switchNetwork(String network) async {
-    if (network == _selectedNetwork) return;
+    if (_selectedNetwork == network) return;
     
     _setLoading(true);
-    _clearError();
     
     try {
       _selectedNetwork = network;
+      
+      // Save network preference
       await StorageService.saveSelectedNetwork(network);
       
       // Reinitialize Stellar service with new network
       StellarService.initialize(useTestnet: isTestnet);
       
-      // Reload wallet data if exists
-      if (hasWallet) {
-        await _loadWalletFromStorage();
+      // Clear current wallet data and reload
+      _transactions = [];
+      
+      if (hasActiveWallet) {
+        await _loadActiveWalletData();
       }
+      
+      debugPrint('WalletProvider: Switched to network: $network');
+      
     } catch (e) {
-      _setError('Failed to switch network: $e');
+      _setError('Failed to switch network: ${e.toString()}');
+      debugPrint('Switch network error: $e');
     } finally {
       _setLoading(false);
     }
   }
   
-  /// Clear wallet and reset state
-  Future<void> clearWallet() async {
-    _setLoading(true);
-    
+  /// Clear all wallet data
+  Future<void> clearAllWallets() async {
     try {
       await StorageService.clearWalletData();
-      _wallet = null;
+      _multiWallet = MultiWalletModel.empty();
       _transactions = [];
-      _clearError();
+      _isInitialized = false;
       notifyListeners();
+      
+      debugPrint('WalletProvider: Cleared all wallet data');
+      
     } catch (e) {
-      _setError('Failed to clear wallet: $e');
-    } finally {
-      _setLoading(false);
+      _setError('Failed to clear wallet data: ${e.toString()}');
+      debugPrint('Clear wallet data error: $e');
     }
   }
   
-  /// Validate transaction
-  TransactionValidationResult validateTransaction({
-    required String destinationAddress,
-    required String amount,
-    String memo = '',
-  }) {
-    return TransactionService.validateTransaction(
-      destinationAddress: destinationAddress,
-      amount: amount,
-      currentBalance: balance,
-      memo: memo,
-    );
+  /// Clear error
+  void clearError() {
+    _setError(null);
   }
   
   // Private helper methods
@@ -297,28 +448,13 @@ class WalletProvider with ChangeNotifier {
     notifyListeners();
   }
   
-  void _setError(String error) {
+  void _setError(String? error) {
     _error = error;
     notifyListeners();
   }
   
-  void _clearError() {
-    _error = null;
-    notifyListeners();
-  }
-  
-  /// Get formatted balance for display
-  String getFormattedBalance([int decimals = 7]) {
-    return balance.toStringAsFixed(decimals);
-  }
-  
-  /// Check if address is valid
-  bool isValidAddress(String address) {
-    return StellarService.isValidStellarAddress(address);
-  }
-  
-  /// Check if amount is valid for sending
-  bool isValidAmount(String amount) {
-    return TransactionService.isValidAmount(amount, balance);
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
