@@ -4,9 +4,9 @@ class AppConstants {
   AppConstants._();
   
   // App Information
-  static const String appName = 'Stellar Wallet';
+  static const String appName = 'Gringotts Wallet';
   static const String appVersion = '1.0.0';
-  static const String appDescription = 'Premium Stellar Blockchain Wallet';
+  static const String appDescription = 'Premium Stellar Blockchain Wallet - Your magical vault for digital treasures';
   
   // Stellar Network Configuration
   static const String stellarTestnetUrl = 'https://horizon-testnet.stellar.org';

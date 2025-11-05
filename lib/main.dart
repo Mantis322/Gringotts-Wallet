@@ -24,11 +24,11 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   
-  runApp(const StellarWalletApp());
+  runApp(const GringottsWalletApp());
 }
 
-class StellarWalletApp extends StatelessWidget {
-  const StellarWalletApp({super.key});
+class GringottsWalletApp extends StatelessWidget {
+  const GringottsWalletApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class StellarWalletApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Stellar Wallet',
+        title: 'Gringotts Wallet',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         darkTheme: AppTheme.darkTheme,

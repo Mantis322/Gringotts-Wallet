@@ -20,7 +20,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       icon: Icons.account_balance_wallet,
-      title: 'Secure Stellar Wallet',
+      title: 'Secure Magical Vault',
       description: 'Store, send and receive Stellar Lumens (XLM) with bank-grade security. Your private keys never leave your device.',
       gradient: AppColors.primaryGradient,
     ),

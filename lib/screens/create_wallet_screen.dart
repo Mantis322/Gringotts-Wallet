@@ -239,7 +239,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
         const SizedBox(height: 24),
 
         Text(
-          'Welcome to Stellar',
+          'Welcome to Gringotts',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
@@ -252,7 +252,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
         const SizedBox(height: 12),
 
         Text(
-          'Choose how you\'d like to get started with your Stellar wallet',
+          'Choose how you\'d like to get started with your magical vault',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppColors.textSecondary,
             height: 1.5,

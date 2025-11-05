@@ -7,6 +7,7 @@ import '../providers/wallet_provider.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/payment_options_modal.dart';
 
 /// Home Screen
 /// Main wallet dashboard with balance, transactions and quick actions
@@ -40,8 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
     await walletProvider.loadTransactionHistory();
   }
 
-  void _navigateToSend() {
-    AppRoutes.push(context, AppRoutes.send);
+  void _showPaymentOptions() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const PaymentOptionsModal(),
+    );
   }
 
   void _navigateToSettings() {
@@ -172,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
         title: Text(
-          'Stellar Wallet',
+          'Gringotts Wallet',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
@@ -236,10 +242,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: QuickActionCard(
-                  icon: Icons.send,
-                  title: 'Send',
-                  subtitle: 'Transfer XLM',
-                  onTap: _navigateToSend,
+                  icon: Icons.payment,
+                  title: 'Make a Payment',
+                  subtitle: 'Multiple options',
+                  onTap: _showPaymentOptions,
                   gradient: AppColors.primaryGradient,
                 ).animate(delay: 600.ms)
                     .slideY(begin: 0.3, duration: 500.ms)
