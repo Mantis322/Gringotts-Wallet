@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../app/theme/colors.dart';
+import '../app/colors.dart';
 import '../app/routes.dart';
 import '../app/constants.dart';
 import '../providers/wallet_provider.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
+import 'pin_setup_screen.dart';
+import 'pin_unlock_screen.dart';
+import 'debug_auth_screen.dart';
 
 /// Settings Screen
 /// Wallet configuration and management interface
@@ -17,8 +21,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDarkMode = true;
-  bool _isBiometricEnabled = false;
   String _selectedNetwork = AppConstants.networkTestnet;
 
   @override
@@ -28,49 +30,148 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    final themeMode = await StorageService.getThemeMode();
-    final biometricEnabled = await StorageService.isBiometricEnabled();
     final selectedNetwork = await StorageService.getSelectedNetwork();
 
     setState(() {
-      _isDarkMode = themeMode == 'dark';
-      _isBiometricEnabled = biometricEnabled;
       _selectedNetwork = selectedNetwork;
     });
   }
 
-  Future<void> _toggleTheme(bool value) async {
-    setState(() => _isDarkMode = value);
-    await StorageService.saveThemeMode(value ? 'dark' : 'light');
-    
-    // Show snackbar for theme change (implementation would restart app)
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Theme updated (restart app to apply)'),
-          backgroundColor: AppColors.successGreen,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+  Future<void> _toggleBiometric(bool value) async {
+    try {
+      if (value) {
+        // Check if biometric is available
+        final isAvailable = await AuthService.isBiometricAvailable();
+        if (!isAvailable) {
+          _showErrorSnackbar('Biometric authentication is not available on this device');
+          return;
+        }
+        
+        // Test biometric authentication before enabling
+        final success = await AuthService.authenticateWithBiometric(
+          localizedReason: 'Enable biometric authentication for Gringotts Wallet',
+        );
+        
+        if (!success) {
+          _showErrorSnackbar('Biometric authentication failed');
+          return;
+        }
+      }
+      
+      await AuthService.setBiometricEnabled(value);
+      
+      debugPrint('Settings: Biometric enabled set to $value');
+      
+      if (mounted) {
+        setState(() {}); // Trigger rebuild
+        debugPrint('Settings: setState called after setBiometricEnabled');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value 
+                  ? 'Biometric authentication enabled' 
+                  : 'Biometric authentication disabled',
+            ),
+            backgroundColor: AppColors.successGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ),
-      );
+        );
+      }
+    } catch (e) {
+      _showErrorSnackbar('Failed to update biometric settings');
     }
   }
 
-  Future<void> _toggleBiometric(bool value) async {
-    setState(() => _isBiometricEnabled = value);
-    await StorageService.saveBiometricEnabled(value);
+  Future<void> _toggleAuthRequired(bool value) async {
+    try {
+      if (value) {
+        // Ensure at least one authentication method is available
+        final authMethods = await AuthService.getAuthenticationMethods();
+        if (!authMethods.hasAnyMethod) {
+          _showErrorSnackbar('Please setup PIN or biometric authentication first');
+          return;
+        }
+      }
+      
+      await AuthService.setAuthRequired(value);
+      
+      if (mounted) {
+        setState(() {}); // Trigger rebuild
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value 
+                  ? 'Authentication required enabled' 
+                  : 'Authentication required disabled',
+            ),
+            backgroundColor: AppColors.successGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      _showErrorSnackbar('Failed to update authentication settings');
+    }
+  }
+
+  Future<void> _handlePinSetup(bool isChanging) async {
+    if (isChanging) {
+      // Show PIN unlock first, then setup
+      final unlockResult = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (context) => PinUnlockScreen(
+            title: 'Verify Current PIN',
+            subtitle: 'Enter your current PIN to change it',
+            canUseBiometric: false,
+          ),
+        ),
+      );
+      
+      if (unlockResult != true) return;
+    }
     
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => PinSetupScreen(
+          isChangingPin: isChanging,
+          onSuccess: () {
+            if (mounted) {
+              setState(() {}); // Trigger rebuild
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isChanging ? 'PIN changed successfully' : 'PIN setup completed',
+                  ),
+                  backgroundColor: AppColors.successGreen,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+    
+    if (result == true && mounted) {
+      setState(() {}); // Trigger rebuild to update UI
+    }
+  }
+
+  void _showErrorSnackbar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            value 
-                ? 'Biometric authentication enabled' 
-                : 'Biometric authentication disabled',
-          ),
-          backgroundColor: AppColors.successGreen,
+          content: Text(message),
+          backgroundColor: AppColors.errorRed,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -301,42 +402,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildPreferencesSection() {
-    return _buildSection(
-      title: 'Preferences',
-      icon: Icons.tune,
-      children: [
-        _buildSwitchTile(
-          'Dark Mode',
-          'Use dark theme across the app',
-          Icons.dark_mode,
-          _isDarkMode,
-          _toggleTheme,
-        ),
-      ],
-    ).animate(delay: 400.ms)
-        .slideY(begin: 0.3, duration: 600.ms)
-        .fadeIn(duration: 600.ms);
+    // Theme section removed - app uses single dark theme
+    return const SizedBox.shrink();
   }
 
   Widget _buildSecuritySection() {
-    return _buildSection(
-      title: 'Security',
-      icon: Icons.security,
-      children: [
-        _buildSwitchTile(
-          'Biometric Authentication',
-          'Use fingerprint or face ID',
-          Icons.fingerprint,
-          _isBiometricEnabled,
-          _toggleBiometric,
-        ),
-        _buildListTile(
-          'Export Secret Key',
-          'View your wallet secret key',
-          Icons.vpn_key,
-          onTap: () => _showExportDialog(),
-        ),
-      ],
+    return FutureBuilder<AuthenticationMethods>(
+      future: AuthService.getAuthenticationMethods(),
+      builder: (context, snapshot) {
+        final authMethods = snapshot.data;
+        
+        return _buildSection(
+          title: 'Security',
+          icon: Icons.security,
+          children: [
+            // Always show biometric option for testing
+            _buildSwitchTile(
+              'Biometric Authentication',
+              authMethods?.biometricAvailable == true 
+                ? 'Use fingerprint or face ID'
+                : 'Biometric not available on this device',
+              Icons.fingerprint,
+              authMethods?.biometricEnabled ?? false,
+              (value) {
+                if (authMethods?.biometricAvailable == true) {
+                  _toggleBiometric(value);
+                } else {
+                  _showErrorSnackbar('Biometric authentication is not available on this device');
+                }
+              },
+            ),
+            _buildListTile(
+              'PIN Code',
+              authMethods?.pinSetup == true ? 'Change PIN' : 'Setup PIN',
+              Icons.pin,
+              onTap: () => _handlePinSetup(authMethods?.pinSetup == true),
+            ),
+            _buildSwitchTile(
+              'Require Authentication',
+              'Require PIN or biometric to open app',
+              Icons.lock,
+              authMethods?.authRequired ?? false,
+              _toggleAuthRequired,
+            ),
+            _buildListTile(
+              'Export Secret Key',
+              'View your wallet secret key',
+              Icons.vpn_key,
+              onTap: () => _showExportDialog(),
+            ),
+          ],
+        );
+      },
     ).animate(delay: 600.ms)
         .slideY(begin: 0.3, duration: 600.ms)
         .fadeIn(duration: 600.ms);
@@ -369,6 +486,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Get help and contact us',
           Icons.help_outline,
           onTap: () => _showComingSoonSnackbar(),
+        ),
+        _buildListTile(
+          'Debug Auth',
+          'Check authentication status (Debug)',
+          Icons.bug_report,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const DebugAuthScreen()),
+          ),
         ),
       ],
     ).animate(delay: 800.ms)

@@ -19,7 +19,6 @@ class AppConstants {
   static const String keyWalletMnemonic = 'wallet_mnemonic';
   static const String keyIsFirstLaunch = 'is_first_launch';
   static const String keySelectedNetwork = 'selected_network';
-  static const String keyThemeMode = 'theme_mode';
   static const String keyBiometricEnabled = 'biometric_enabled';
   
   // Network Types

@@ -93,18 +93,6 @@ class StorageService {
     return prefs.getString(AppConstants.keySelectedNetwork) ?? AppConstants.defaultNetwork;
   }
 
-  /// Save theme mode
-  static Future<void> saveThemeMode(String themeMode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(AppConstants.keyThemeMode, themeMode);
-  }
-
-  /// Get theme mode
-  static Future<String> getThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(AppConstants.keyThemeMode) ?? 'dark';
-  }
-
   /// Save biometric setting
   static Future<void> saveBiometricEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();

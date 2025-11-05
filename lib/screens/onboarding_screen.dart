@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../app/theme/colors.dart';
+import '../app/colors.dart';
 import '../app/routes.dart';
-import '../services/storage_service.dart';
 
 /// Onboarding Screen
 /// Premium introduction with smooth animations
@@ -41,19 +40,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    _checkFirstLaunch();
-  }
-
-  Future<void> _checkFirstLaunch() async {
-    // Check if user has already seen onboarding or has wallet
-    final hasWallet = await StorageService.hasWallet();
-    if (hasWallet) {
-      _navigateToHome();
-    }
-  }
-
-  void _navigateToHome() {
-    AppRoutes.pushAndClearStack(context, AppRoutes.home);
+    // Removed wallet check - now handled in splash screen
   }
 
   void _navigateToCreateWallet() {

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'app/theme/app_theme.dart';
 import 'app/routes.dart';
 import 'providers/wallet_provider.dart';
+import 'widgets/auth_guard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,28 +33,29 @@ class GringottsWalletApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (context) => WalletProvider(),
+    return AuthGuard(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => WalletProvider(),
+          ),
+        ],
+        child: MaterialApp(
+          title: 'Gringotts Wallet',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.darkTheme,
+          themeMode: ThemeMode.dark,
+          initialRoute: AppRoutes.splash,
+          onGenerateRoute: AppRoutes.generateRoute,
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(1.0), // Prevent text scaling
+              ),
+              child: child!,
+            );
+          },
         ),
-      ],
-      child: MaterialApp(
-        title: 'Gringotts Wallet',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        initialRoute: AppRoutes.splash,
-        onGenerateRoute: AppRoutes.generateRoute,
-        builder: (context, child) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: TextScaler.linear(1.0), // Prevent text scaling
-            ),
-            child: child!,
-          );
-        },
       ),
     );
   }

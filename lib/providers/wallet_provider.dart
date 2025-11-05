@@ -37,8 +37,9 @@ class WalletProvider with ChangeNotifier {
   Future<void> initialize() async {
     if (_isInitialized) return;
     
-    _setLoading(true);
-    _clearError();
+    // Set loading state without notifying listeners during build
+    _isLoading = true;
+    _error = null;
     
     try {
       // Load saved network preference
@@ -54,9 +55,11 @@ class WalletProvider with ChangeNotifier {
       
       _isInitialized = true;
     } catch (e) {
-      _setError('Failed to initialize wallet: $e');
+      _error = 'Failed to initialize wallet: $e';
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      // Only notify listeners after initialization is complete
+      notifyListeners();
     }
   }
   

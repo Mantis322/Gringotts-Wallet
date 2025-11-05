@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../app/theme/colors.dart';
+import '../app/colors.dart';
 import '../app/routes.dart';
 import '../app/constants.dart';
+import '../providers/wallet_provider.dart';
+import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 
 /// Splash Screen
 /// Premium animated loading screen with Stellar branding
@@ -71,12 +75,44 @@ class _SplashScreenState extends State<SplashScreen>
     // Start text animation after logo
     await _textController.forward();
     
-    // Wait for splash duration
-    await Future.delayed(const Duration(milliseconds: 1000));
+    // Wait for splash duration and check wallet status
+    await Future.delayed(const Duration(milliseconds: 500));
     
-    // Navigate to onboarding
     if (mounted) {
-      await AppRoutes.pushReplacement(context, AppRoutes.onboarding);
+      await _checkWalletAndNavigate();
+    }
+  }
+
+  Future<void> _checkWalletAndNavigate() async {
+    try {
+      // Initialize wallet provider first
+      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+      await walletProvider.initialize();
+      
+      // Check if wallet exists
+      final hasWallet = await StorageService.hasWallet();
+      
+      if (hasWallet) {
+        // Check if authentication is required
+        final authRequired = await AuthService.isAuthRequired();
+        
+        if (authRequired) {
+          // Authentication will be handled by AuthGuard
+          await AppRoutes.pushAndClearStack(context, AppRoutes.home);
+        } else {
+          // Go directly to home
+          await AppRoutes.pushAndClearStack(context, AppRoutes.home);
+        }
+      } else {
+        // No wallet, go to onboarding
+        await AppRoutes.pushReplacement(context, AppRoutes.onboarding);
+      }
+    } catch (e) {
+      debugPrint('Splash navigation error: $e');
+      // On error, go to onboarding as fallback
+      if (mounted) {
+        await AppRoutes.pushReplacement(context, AppRoutes.onboarding);
+      }
     }
   }
 

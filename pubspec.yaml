@@ -41,6 +41,10 @@ dependencies:
   # Mnemonic generation
   bip39: ^1.0.6
   
+  # Authentication & Security
+  local_auth: ^2.3.0
+  crypto: ^3.0.5
+  
   # Storage & Security
   flutter_secure_storage: ^9.2.2
   shared_preferences: ^2.3.2
