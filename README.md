@@ -37,7 +37,9 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 - **🔑 Secure Key Management**: Hardware-backed secure storage
 - **📝 Mnemonic Backup System**: BIP-39 compliant 12-word recovery phrases
 - **🚫 Zero Cloud Storage**: All keys remain on your device
-- **🔒 Biometric Protection**: Fingerprint & Face ID support (planned)
+- **🔒 Biometric Protection**: Fingerprint & Face ID authentication ✅
+- **📱 PIN Code Security**: 6-digit PIN with secure hashing ✅
+- **🔐 App Lock Protection**: Authentication required on app launch ✅
 
 </td>
 <td width="50%">
@@ -117,7 +119,34 @@ graph TB
 
 ## 🆕 Latest Updates
 
-### 💳 Payment Options Enhancement (v1.1.0)
+### � Security Enhancement (v1.2.0)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **Biometric Authentication** | Fingerprint & Face ID support | ✅ Live |
+| **PIN Code Protection** | 6-digit secure PIN system | ✅ Live |
+| **App Lock Security** | Authentication on app launch | ✅ Live |
+| **Security Settings** | Complete security management UI | ✅ Live |
+
+</div>
+
+#### 🔒 Security Flow
+
+```mermaid
+graph LR
+    A[App Launch] --> B{Auth Required?}
+    B -->|Yes| C{Biometric Available?}
+    B -->|No| G[Home Screen]
+    C -->|Yes| D[Biometric Auth] --> F{Success?}
+    C -->|No| E[PIN Entry] --> F
+    F -->|Yes| G
+    F -->|No| H[Try Again]
+    H --> C
+```
+
+### �💳 Payment Options Enhancement (v1.1.0)
 
 <div align="center">
 
@@ -209,6 +238,8 @@ graph LR
 | **🎯 Framework** | Flutter | 3.35.7 | Cross-platform UI framework |
 | **🌐 Blockchain** | Stellar SDK | 1.9.4 | Blockchain integration |
 | **🔐 Security** | Flutter Secure Storage | 9.2.2 | Encrypted key storage |
+| **🔒 Authentication** | Local Auth | 2.3.0 | Biometric authentication |
+| **🛡️ Encryption** | Crypto | 3.0.5 | PIN hashing & encryption |
 | **🎭 Animations** | Flutter Animate | 4.5.0 | Premium animations |
 | **🔄 State** | Provider | 6.1.2 | State management |
 | **🔑 Cryptography** | BIP39 | 1.0.6 | Mnemonic generation |
@@ -236,7 +267,8 @@ graph LR
 │   ├── 🔧 services/
 │   │   ├── stellar_service.dart        # Blockchain operations
 │   │   ├── storage_service.dart        # Secure data management
-│   │   └── transaction_service.dart    # Payment processing
+│   │   ├── transaction_service.dart    # Payment processing
+│   │   └── auth_service.dart           # Authentication & security
 │   ├── 🎭 providers/
 │   │   └── wallet_provider.dart        # App state management
 │   ├── 📱 screens/
@@ -246,13 +278,17 @@ graph LR
 │   │   ├── backup_mnemonic_screen.dart # Seed phrase backup
 │   │   ├── home_screen.dart            # Main dashboard
 │   │   ├── send_screen.dart            # Transaction sending
-│   │   └── settings_screen.dart        # App configuration
+│   │   ├── settings_screen.dart        # App configuration
+│   │   ├── pin_setup_screen.dart       # PIN creation & management
+│   │   ├── pin_unlock_screen.dart      # PIN authentication
+│   │   └── debug_auth_screen.dart      # Authentication testing
 │   ├── 🧩 widgets/
 │   │   ├── custom_button.dart          # Reusable buttons
 │   │   ├── balance_card.dart           # Balance display
 │   │   ├── wallet_card.dart            # Wallet selection
 │   │   ├── transaction_card.dart       # Transaction items
-│   │   └── payment_options_modal.dart  # Payment method selector
+│   │   ├── payment_options_modal.dart  # Payment method selector
+│   │   └── auth_guard.dart             # Authentication wrapper
 │   └── 🚀 main.dart                    # Application entry point
 ├── 🤖 android/                         # Android platform code
 ├── 🍎 ios/                             # iOS platform code
@@ -300,7 +336,9 @@ graph LR
 | **🔑 Encryption** | AES-256 encryption for all sensitive data | ✅ Implemented |
 | **📝 Mnemonic Protection** | BIP-39 compliant, securely stored | ✅ Implemented |
 | **🚫 Network Isolation** | Private keys never transmitted | ✅ Implemented |
-| **🔒 Biometric Auth** | Fingerprint & Face ID integration | 🔄 Planned |
+| **🔒 Biometric Auth** | Fingerprint & Face ID integration | ✅ Implemented |
+| **� PIN Protection** | 6-digit PIN with secure hashing | ✅ Implemented |
+| **🛡️ App Lock** | Authentication required on launch | ✅ Implemented |
 | **🎯 App Attestation** | Runtime application verification | 🔄 Planned |
 
 ---
@@ -383,7 +421,7 @@ Gringotts Gold
 ### ⚡ Quick Start
 
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/Mantis322/gringotts-wallet.git
 cd gringotts-wallet
 
@@ -535,7 +573,10 @@ sequenceDiagram
 • Secure key management<br>
 • Stellar network integration<br>
 • Premium UI/UX<br>
-• Multi-payment options interface
+• Multi-payment options interface<br>
+• Biometric authentication<br>
+• PIN code protection<br>
+• App lock security
 </td>
 <td>✅ Complete</td>
 </tr>
@@ -543,12 +584,12 @@ sequenceDiagram
 <td><strong>Phase 2: Enhancement</strong></td>
 <td>Q1 2026</td>
 <td>
-• Biometric authentication<br>
 • QR Code payment system<br>
 • NFC payment integration<br>
 • Multi-asset support<br>
 • DeFi integrations<br>
-• Advanced analytics
+• Advanced analytics<br>
+• Hardware wallet support
 </td>
 <td>🔄 Planning</td>
 </tr>
@@ -610,19 +651,22 @@ We welcome contributions from the magical developer community!
 <table>
 <tr>
 <td align="center">
+<img src="https://github.com/Mantis322.png" width="100px;" alt="Mantis322"/><br>
+<sub><b>Mantis322</b></sub><br>
+<sub>Lead Developer</sub><br>
+<sub>Flutter & Blockchain Expert</sub>
+</td>
+<td align="center">
 <img src="https://via.placeholder.com/100x100/6366F1/FFFFFF?text=GM" width="100px;" alt="Goblin Manager"/><br>
 <sub><b>Griphook</b></sub><br>
-<sub>Lead Vault Keeper</sub>
+<sub>Lead Vault Keeper</sub><br>
+<sub>Security Consultant</sub>
 </td>
 <td align="center">
 <img src="https://via.placeholder.com/100x100/FBBF24/000000?text=SA" width="100px;" alt="Security Architect"/><br>
 <sub><b>Ragnok</b></sub><br>
-<sub>Security Architect</sub>
-</td>
-<td align="center">
-<img src="https://via.placeholder.com/100x100/3B82F6/FFFFFF?text=FD" width="100px;" alt="Flutter Developer"/><br>
-<sub><b>Bogrod</b></sub><br>
-<sub>Flutter Developer</sub>
+<sub>Security Architect</sub><br>
+<sub>Cryptography Expert</sub>
 </td>
 </tr>
 </table>
