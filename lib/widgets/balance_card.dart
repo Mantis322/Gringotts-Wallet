@@ -230,26 +230,33 @@ class _BalanceCardState extends State<BalanceCard>
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
                 shape: BoxShape.circle,
+                color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryPurple.withOpacity(0.3),
-                    blurRadius: 8,
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
                     spreadRadius: 0,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.auto_awesome,
-                color: AppColors.textPrimary,
-                size: 16,
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Image.asset(
+                    'assets/icons/xlm_logo.png',
+                    width: 24,
+                    height: 24,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
-            ).animate(delay: 200.ms)
-                .scale(duration: 600.ms)
+            ).animate(delay: 250.ms)
+                .scale(duration: 400.ms)
                 .then()
-                .shimmer(duration: 2000.ms, color: AppColors.accentGold.withOpacity(0.3)),
-            const SizedBox(width: 12),
+                .shimmer(duration: 2000.ms, color: Colors.blue.withOpacity(0.3)),
+            const SizedBox(width: 8),
             Text(
               'XLM',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(

@@ -182,7 +182,7 @@ class WalletSelector extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -230,26 +230,11 @@ class WalletSelector extends StatelessWidget {
           ),
           if (walletProvider.walletCount > 1) ...[
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Text(
-                  '${walletProvider.walletCount} wallets available',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => _showWalletOptions(context),
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Add Wallet'),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
+            Text(
+              '${walletProvider.walletCount} wallets available',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ],
@@ -340,7 +325,7 @@ class _WalletListSheet extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                     ),
                   ),
                 ],
@@ -430,35 +415,10 @@ class _WalletListSheet extends StatelessWidget {
               ),
             ),
 
-            // Add Wallet Button
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _showWalletOptions(context);
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add New Wallet'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-              ),
-            ),
+
           ],
         ),
       ),
-    );
-  }
-
-  void _showWalletOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const _WalletOptionsSheet(),
     );
   }
 }
