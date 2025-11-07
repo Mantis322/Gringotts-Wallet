@@ -168,7 +168,14 @@ class _CustomButtonState extends State<CustomButton>
             child: widget.icon!,
           ),
           const SizedBox(width: 8),
-          Text(widget.text, style: textStyle),
+          Flexible(
+            child: Text(
+              widget.text, 
+              style: textStyle,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
         ],
       );
     }

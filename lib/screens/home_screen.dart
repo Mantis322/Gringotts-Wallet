@@ -7,6 +7,7 @@ import '../providers/wallet_provider.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/payment_options_modal.dart';
+import '../widgets/receive_options_modal.dart';
 import '../widgets/wallet_selector.dart';
 
 /// Home Screen
@@ -47,6 +48,15 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const PaymentOptionsModal(),
+    );
+  }
+
+  void _showReceiveOptions() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ReceiveOptionsModal(),
     );
   }
 
@@ -106,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
+          SizedBox(
             width: 60,
             height: 60,
             child: CircularProgressIndicator(
@@ -240,20 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: QuickActionCard(
                   icon: Icons.qr_code_scanner,
                   title: 'Receive',
-                  subtitle: 'Show QR Code',
-                  onTap: () {
-                    // TODO: Implement QR code functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('QR Code feature coming soon'),
-                        backgroundColor: AppColors.secondaryBlue,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    );
-                  },
+                  subtitle: 'Multiple options',
+                  onTap: _showReceiveOptions,
                   gradient: AppColors.accentGradient,
                 ).animate(delay: 800.ms)
                     .slideY(begin: 0.3, duration: 500.ms)

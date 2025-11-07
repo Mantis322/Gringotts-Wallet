@@ -5,6 +5,8 @@ import '../screens/home_screen.dart';
 import '../screens/create_wallet_screen.dart';
 import '../screens/send_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/qr_receive_screen.dart';
+import '../screens/qr_scanner_screen.dart';
 
 /// Application Route Management
 /// Centralized navigation and route handling
@@ -18,6 +20,8 @@ class AppRoutes {
   static const String createWallet = '/create-wallet';
   static const String send = '/send';
   static const String settings = '/settings';
+  static const String qrReceive = '/qr-receive';
+  static const String qrScanner = '/qr-scanner';
   
   // Generate Routes
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -39,6 +43,12 @@ class AppRoutes {
       
       case '/settings':
         return _createRoute(const SettingsScreen());
+      
+      case qrReceive:
+        return _createRoute(const QRReceiveScreen());
+      
+      case qrScanner:
+        return _createRoute(const QRScannerScreen());
       
       default:
         return _createRoute(

@@ -3,8 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../app/theme/colors.dart';
 import '../app/routes.dart';
 
-class PaymentOptionsModal extends StatelessWidget {
-  const PaymentOptionsModal({super.key});
+class ReceiveOptionsModal extends StatelessWidget {
+  const ReceiveOptionsModal({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class PaymentOptionsModal extends StatelessWidget {
             
             // Title
             Text(
-              'Make a Payment',
+              'Receive XLM',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -46,7 +46,7 @@ class PaymentOptionsModal extends StatelessWidget {
             const SizedBox(height: 8),
             
             Text(
-              'Choose your preferred payment method',
+              'Choose how you want to receive XLM',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -57,14 +57,14 @@ class PaymentOptionsModal extends StatelessWidget {
             
             const SizedBox(height: 32),
             
-            // Payment Options
-            PaymentOptionCard(
+            // Receive Options
+            ReceiveOptionCard(
               icon: Icons.qr_code_scanner,
-              title: 'Make a Payment with QR Code',
-              subtitle: 'Scan recipient\'s QR code',
+              title: 'Receive with QR Code',
+              subtitle: 'Show your QR code to sender',
               onTap: () {
                 Navigator.pop(context);
-                AppRoutes.push(context, AppRoutes.qrScanner);
+                AppRoutes.push(context, AppRoutes.qrReceive);
               },
               gradient: AppColors.accentGradient,
             ).animate(delay: 300.ms)
@@ -73,29 +73,14 @@ class PaymentOptionsModal extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            PaymentOptionCard(
+            ReceiveOptionCard(
               icon: Icons.nfc,
-              title: 'Make a Payment with NFC',
-              subtitle: 'Tap to pay with NFC',
-              onTap: () => _showComingSoon(context, 'NFC Payment'),
+              title: 'Receive with NFC',
+              subtitle: 'Tap to receive with NFC',
+              onTap: () => _showComingSoon(context, 'NFC Receive'),
               gradient: AppColors.goldGradient,
             ).animate(delay: 400.ms)
                 .slideX(begin: 0.3, duration: 500.ms)
-                .fadeIn(duration: 500.ms),
-            
-            const SizedBox(height: 16),
-            
-            PaymentOptionCard(
-              icon: Icons.send,
-              title: 'Transfer XLM',
-              subtitle: 'Traditional wallet transfer',
-              onTap: () {
-                Navigator.pop(context);
-                AppRoutes.push(context, AppRoutes.send);
-              },
-              gradient: AppColors.primaryGradient,
-            ).animate(delay: 500.ms)
-                .slideX(begin: -0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
             const SizedBox(height: 24),
@@ -109,7 +94,7 @@ class PaymentOptionsModal extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
-            ).animate(delay: 600.ms)
+            ).animate(delay: 500.ms)
                 .slideY(begin: 0.3, duration: 400.ms)
                 .fadeIn(duration: 400.ms),
           ],
@@ -171,14 +156,14 @@ class PaymentOptionsModal extends StatelessWidget {
   }
 }
 
-class PaymentOptionCard extends StatelessWidget {
+class ReceiveOptionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
   final LinearGradient gradient;
 
-  const PaymentOptionCard({
+  const ReceiveOptionCard({
     super.key,
     required this.icon,
     required this.title,

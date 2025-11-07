@@ -51,8 +51,8 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 - **💎 XLM Native Support**: Full Stellar Lumens integration
 - **📊 Complete Transaction History**: Detailed payment tracking
 - **🔄 Real-time Balance Updates**: Live network synchronization
-- **💳 Multiple Payment Methods**: QR Code, NFC, and traditional transfers
-- **🚀 Smart Payment Options**: Intuitive payment selection interface
+- **💳 Multiple Payment & Receive Methods**: QR Code, NFC, and traditional transfers
+- **🚀 Smart Payment & Receive Options**: Intuitive selection interfaces for both sending and receiving
 - **🏦 Multi-Wallet Management**: Create, import, and switch between wallets ✅
 - **🔑 Secret Key Import/Export**: Secure wallet portability ✅
 - **📝 Custom Wallet Naming**: Organize wallets with custom names ✅
@@ -127,7 +127,53 @@ graph TB
 
 ---
 
-## 🆕 Latest Updates
+### 🆕 Latest Updates
+
+### 📱 QR Code Integration System (v1.4.0)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **QR Code Payments** | Mobile scanner with camera integration | ✅ Live |
+| **QR Code Receiving** | Generate payment QR codes with wallet selection | ✅ Live |
+| **Payment Confirmation** | Interactive confirmation dialog with transaction details | ✅ Live |
+| **Real-time Validation** | Live transaction validation and error handling | ✅ Live |
+| **Custom Scanner Overlay** | Beautiful scanner interface with torch control | ✅ Live |
+| **Stellar URI Support** | Full web+stellar:pay URI format support | ✅ Live |
+| **Multi-Wallet QR Support** | Generate QR codes for any wallet | ✅ Live |
+
+</div>
+
+#### 📱 QR Code Payment & Receive Flow
+
+```mermaid
+graph LR
+    A[Payment Options] --> B[QR Code Payment]
+    B --> C[Camera Scanner] --> D[QR Detection]
+    D --> E[Payment Confirmation] --> F[Transaction Execution]
+    F --> G[Success/Error Feedback]
+    
+    H[Receive Options] --> I[Receive with QR Code]
+    I --> J[Wallet Selection] --> K[Amount Input]
+    K --> L[QR Code Generation] --> M[Share/Display QR]
+    
+    subgraph "QR Payment Features"
+        N[Mobile Scanner Integration]
+        O[Custom Overlay Shape]
+        P[Torch Control]
+        Q[Real-time Detection]
+        R[Error Handling]
+    end
+    
+    subgraph "QR Receive Features"
+        S[Multi-Wallet Support]
+        T[Custom Amount Input]
+        U[Stellar URI Format]
+        V[QR Code Generation]
+        W[Share Functionality]
+    end
+```
 
 ### 🏦 Multi-Wallet System (v1.3.0)
 
@@ -195,38 +241,90 @@ graph LR
     H --> C
 ```
 
-### �💳 Payment Options Enhancement (v1.1.0)
+### 💳 Payment & Receive Options Enhancement (v1.1.2)
 
 <div align="center">
 
 | 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
 |-------------------|----------------------|---------------|
 | **Multi-Payment Interface** | Smart modal with 3 payment options | ✅ Live |
-| **QR Code Payments** | Scan-to-pay functionality | 🔄 Development |
+| **Multi-Receive Interface** | Smart modal with receive options | ✅ Live |
+| **QR Code Payments** | Scan-to-pay functionality with mobile scanner | ✅ Live |
+| **QR Code Receiving** | Generate QR codes for receiving funds | ✅ Live |
 | **NFC Payments** | Tap-to-pay integration | 🔄 Development |
+| **NFC Receiving** | Tap-to-receive integration | 🔄 Development |
 | **Traditional Transfer** | Enhanced XLM transfer flow | ✅ Live |
 
 </div>
 
-#### 🎯 User Experience Flow
+#### 🎯 Enhanced User Experience Flow
 
 ```mermaid
 graph LR
     A[Home Screen] --> B[Make a Payment]
+    A --> H[Receive]
+    
     B --> C{Payment Options}
-    C --> D[QR Code Payment] --> D1[Coming Soon]
+    C --> D[QR Code Payment] --> D1[QR Scanner] --> D2[Payment Confirmation] --> G[Transaction Complete]
     C --> E[NFC Payment] --> E1[Coming Soon]
-    C --> F[Transfer XLM] --> F1[Send Screen]
-    F1 --> G[Transaction Complete]
+    C --> F[Transfer XLM] --> F1[Send Screen] --> G
+    
+    H --> I{Receive Options}
+    I --> J[Receive with QR Code] --> J1[Generate QR Code] --> J2[Share Payment Request]
+    I --> K[Receive with NFC] --> K1[Coming Soon]
 ```
 
 #### ✨ Enhanced Features
 
-- **🎭 Animated Modal**: Smooth slide-up animation with glass morphism design
-- **🎨 Premium Cards**: Individual cards for each payment method
+- **🎭 Animated Modals**: Smooth slide-up animations with glass morphism design for both payment and receive options
+- **🎨 Premium Cards**: Individual cards for each payment and receive method
+- **💫 Unified Experience**: Consistent design language across payment and receive interfaces
 - **⚡ Smart Navigation**: Direct routing to appropriate screens
-- **🚧 Development Indicators**: Clear messaging for upcoming features
-- **🔄 Backward Compatibility**: Existing functionality preserved
+- **� QR Code Integration**: Full QR code payment and receive functionality
+- **📷 Mobile Scanner**: Advanced QR code scanner with custom overlay and torch control
+- **🔄 Backward Compatibility**: All existing functionality preserved
+- **📱 Multi-Option Support**: Both "Make a Payment" and "Receive" now offer multiple methods
+
+### ⚡ Quick Actions Enhancement (v1.3.2)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **Enhanced Receive Interface** | Modal with multiple receive options | ✅ Live |
+| **Receive with QR Code** | QR code generation for receiving funds | 🔄 Development |
+| **Receive with NFC** | NFC-based fund receiving | 🔄 Development |
+| **Unified Quick Actions** | Consistent design across payment & receive | ✅ Live |
+| **Progressive Enhancement** | Future-ready architecture for new features | ✅ Live |
+
+</div>
+
+#### 🎯 Quick Actions Flow
+
+```mermaid
+graph TB
+    A[Home Screen Quick Actions] --> B[Make a Payment]
+    A --> C[Receive]
+    
+    B --> D[Payment Options Modal]
+    D --> D1[QR Code Payment - Live with Scanner]
+    D --> D2[NFC Payment - Coming Soon]
+    D --> D3[Transfer XLM - Live]
+    
+    C --> E[Receive Options Modal]
+    E --> E1[Receive with QR Code - Live with Generator]
+    E --> E2[Receive with NFC - Coming Soon]
+```
+
+#### ✨ Enhanced Quick Actions Features
+
+- **🎭 Dual Modal System**: Both payment and receive operations use consistent modal interfaces
+- **🔮 Future-Ready Design**: Architecture supports easy addition of new payment/receive methods
+- **📱 Intuitive UX**: Clear visual hierarchy and consistent interaction patterns
+- **⚡ Quick Access**: Single-touch access to all transaction operations
+- **🎨 Visual Consistency**: Matching animations, gradients, and card designs
+- **📷 QR Code Support**: Complete QR code ecosystem for payments and receiving
+- **🔄 Real-time Processing**: Live transaction validation and network communication
 
 ### 🏦 Wallet Management System (v1.3.1)
 
@@ -312,7 +410,8 @@ graph LR
 <li>Balance overview</li>
 <li>Transaction history</li>
 <li>Payment options menu</li>
-<li>Quick actions</li>
+<li>Receive options menu</li>
+<li>Enhanced quick actions</li>
 <li>Settings access</li>
 <li>Wallet switching</li>
 <li>Wallet management</li>
@@ -331,6 +430,8 @@ graph LR
 |----------|------------|---------|---------|
 | **🎯 Framework** | Flutter | 3.35.7 | Cross-platform UI framework |
 | **🌐 Blockchain** | Stellar SDK | 1.9.4 | Blockchain integration |
+| **📷 QR Scanner** | Mobile Scanner | 5.0.0 | QR code scanning |
+| **🔢 QR Generator** | QR Flutter | 4.1.0 | QR code generation |
 | **🔐 Security** | Flutter Secure Storage | 9.2.2 | Encrypted key storage |
 | **🔒 Authentication** | Local Auth | 2.3.0 | Biometric authentication |
 | **🛡️ Encryption** | Crypto | 3.0.5 | PIN hashing & encryption |
@@ -373,6 +474,8 @@ graph LR
 │   │   ├── backup_secret_key_screen.dart # Secret key backup
 │   │   ├── home_screen.dart            # Main dashboard
 │   │   ├── send_screen.dart            # Transaction sending
+│   │   ├── qr_receive_screen.dart      # QR code generation for receiving
+│   │   ├── qr_scanner_screen.dart      # QR code scanner for payments
 │   │   ├── settings_screen.dart        # App configuration
 │   │   ├── pin_setup_screen.dart       # PIN creation & management
 │   │   ├── pin_unlock_screen.dart      # PIN authentication
@@ -383,6 +486,7 @@ graph LR
 │   │   ├── wallet_selector.dart        # Multi-wallet selector
 │   │   ├── transaction_card.dart       # Transaction items
 │   │   ├── payment_options_modal.dart  # Payment method selector
+│   │   ├── receive_options_modal.dart  # Receive method selector
 │   │   └── auth_guard.dart             # Authentication wrapper
 │   └── 🚀 main.dart                    # Application entry point
 ├── 🤖 android/                         # Android platform code
@@ -670,6 +774,7 @@ sequenceDiagram
 • Stellar network integration<br>
 • Premium UI/UX<br>
 • Multi-payment options interface<br>
+• Multi-receive options interface<br>
 • Biometric authentication<br>
 • PIN code protection<br>
 • App lock security<br>
@@ -685,8 +790,8 @@ sequenceDiagram
 <td><strong>Phase 2: Enhancement</strong></td>
 <td>Q1 2026</td>
 <td>
-• QR Code payment system<br>
-• NFC payment integration<br>
+• ✅ QR Code payment & receive system<br>
+• NFC payment & receive integration<br>
 • Multi-asset support<br>
 • DeFi integrations<br>
 • Advanced analytics<br>
@@ -799,27 +904,37 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Mantis322/gringotts-wallet/discussions)
 - 🔒 **Security Issues**: security@gringotts-wallet.com
 
-### 🆕 Latest Release Highlights (v1.3.1)
+### 🆕 Latest Release Highlights (v1.4.0)
 
 <div align="center">
 
 | 🎯 **Feature Category** | 🚀 **New Capabilities** | 📊 **Impact** |
 |-------------------------|-------------------------|---------------|
-| **🏦 Wallet Management** | Custom naming, smart display (Wallet 1, 2, 3...) | Enhanced organization |
-| **⚙️ Settings Integration** | Comprehensive wallet management panel | Centralized control |
-| **🔐 Security Features** | One-click secret key export with warnings | Improved backup workflow |
-| **🎨 User Experience** | Visual active wallet indicators, context menus | Intuitive navigation |
-| **🛡️ Safety Systems** | Active wallet protection, confirmation dialogs | Prevented data loss |
+| **� QR Code Payments** | Complete mobile scanner with camera integration | Revolutionary payment UX |
+| **📷 QR Code Receiving** | Generate payment QR codes with wallet selection | Seamless fund receiving |
+| **� Payment Confirmation** | Interactive confirmation with transaction details | Enhanced security |
+| **🔄 Real-time Processing** | Live validation and transaction execution | Reliable payment flow |
+| **🏦 Multi-Wallet QR Support** | Generate QR codes for any wallet | Complete flexibility |
+| **� Advanced Scanner** | Custom overlay, torch control, error handling | Professional scanner experience |
+| **� Stellar URI Support** | Full web+stellar:pay format compatibility | Industry standard compliance |
+| **🛡️ Transaction Safety** | Proper success/failure handling and history updates | Data integrity assurance |
 
 </div>
 
-#### 🎯 What's New in Multi-Wallet System
+#### 🎯 What's New in Latest Update
 
+- **💫 Complete Transaction Interface**: Both "Make a Payment" and "Receive" now offer multiple options
+- **🔄 Unified Design Language**: Consistent modal design across all Quick Actions
+- **📱 QR Code Payment System**: Full QR code scanner with camera integration and payment confirmation
+- **📷 QR Code Receive System**: Generate payment QR codes with wallet selection and amount input
+- **🎯 Enhanced Payment Flow**: Real transaction validation and error handling
 - **📝 Smart Naming**: Wallets display as "Wallet 1", "Wallet 2" for easy identification
 - **⚙️ Management Hub**: Access all wallet operations from Settings → Manage Wallets
 - **🔐 Secure Export**: Export secret keys with built-in security warnings
 - **🎨 Enhanced UI**: Beautiful bottom sheets with visual indicators
 - **🛡️ Protection**: Cannot delete active wallets, preventing accidents
+- **📲 Mobile Scanner Integration**: Advanced QR scanner with custom overlay shapes and torch control
+- **🔄 Transaction History Updates**: Real-time balance and history refresh after successful payments
 
 ---
 
