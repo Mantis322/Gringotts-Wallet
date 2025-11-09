@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingPage> _pages = [
     OnboardingPage(
-      icon: Icons.account_balance_wallet,
+      imagePath: 'assets/images/gringotts_logo.png',
       title: 'Secure Magical Vault',
       description: 'Store, send and receive Stellar Lumens (XLM) with bank-grade security. Your private keys never leave your device.',
       gradient: AppColors.primaryGradient,
@@ -205,11 +205,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ],
             ),
-            child: Icon(
-              page.icon,
-              color: AppColors.textPrimary,
-              size: 60,
-            ),
+            child: page.imagePath != null
+                ? ClipOval(
+                    child: Image.asset(
+                      page.imagePath!,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Icon(
+                    page.icon!,
+                    color: AppColors.textPrimary,
+                    size: 60,
+                  ),
           ).animate(delay: Duration(milliseconds: 200 * (index + 1)))
               .scale(duration: 600.ms, curve: Curves.elasticOut)
               .then()
@@ -267,15 +276,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
 /// Onboarding Page Data Model
 class OnboardingPage {
-  final IconData icon;
+  final IconData? icon;
+  final String? imagePath;
   final String title;
   final String description;
   final LinearGradient gradient;
 
   const OnboardingPage({
-    required this.icon,
+    this.icon,
+    this.imagePath,
     required this.title,
     required this.description,
     required this.gradient,
-  });
+  }) : assert(icon != null || imagePath != null, 'Either icon or imagePath must be provided');
 }

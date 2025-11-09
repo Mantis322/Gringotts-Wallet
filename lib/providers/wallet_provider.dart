@@ -4,6 +4,7 @@ import '../models/wallet_model.dart';
 import '../services/stellar_service.dart';
 import '../services/storage_service.dart';
 import '../services/transaction_service.dart';
+import '../services/wallet_registry_service.dart';
 import '../app/constants.dart';
 
 /// Multi-Wallet Provider
@@ -62,7 +63,7 @@ class WalletProvider with ChangeNotifier {
       }
       
       _isInitialized = true;
-      debugPrint('WalletProvider: Initialized with ${walletCount} wallets');
+      debugPrint('WalletProvider: Initialized with $walletCount wallets');
       
     } catch (e) {
       _setError('Failed to initialize wallet: ${e.toString()}');
@@ -293,6 +294,9 @@ class WalletProvider with ChangeNotifier {
       // Save to storage
       await StorageService.saveMultiWalletData(_multiWallet);
       
+      // Also refresh transactions to show the latest ones
+      await loadTransactions();
+      
       notifyListeners();
       
     } catch (e) {
@@ -453,8 +457,46 @@ class WalletProvider with ChangeNotifier {
     notifyListeners();
   }
   
-  @override
-  void dispose() {
-    super.dispose();
+  /// Refresh wallet display names from Firebase registry
+  /// This method triggers UI update after wallet names are registered
+  Future<void> refreshWalletDisplayNames() async {
+    try {
+      // Update each wallet's display name from Firebase
+      final updatedWallets = <WalletModel>[];
+      
+      for (final wallet in _multiWallet.wallets) {
+        try {
+          final registryEntry = await WalletRegistryService.getWalletInfoByPublicKey(
+            wallet.publicKey,
+          );
+          
+          final updatedWallet = wallet.copyWith(
+            name: registryEntry?.displayName ?? wallet.name,
+          );
+          updatedWallets.add(updatedWallet);
+        } catch (e) {
+          // If Firebase fails, keep original wallet
+          updatedWallets.add(wallet);
+          debugPrint('Error fetching wallet name for ${wallet.publicKey}: $e');
+        }
+      }
+      
+      // Update the multi-wallet model with new wallets
+      _multiWallet = MultiWalletModel(
+        wallets: updatedWallets,
+        activeWalletId: _multiWallet.activeWalletId,
+      );
+      
+      // Save updated wallets to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+      
+      notifyListeners();
+      
+      debugPrint('WalletProvider: Refreshed wallet display names');
+      
+    } catch (e) {
+      debugPrint('Error refreshing wallet display names: $e');
+    }
   }
+  
 }

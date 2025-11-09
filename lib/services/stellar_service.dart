@@ -205,9 +205,39 @@ class StellarService {
           fee: double.parse(transaction.fee.toString()) / 10000000, // Convert stroops to XLM
         );
       } else {
-        throw Exception('Transaction failed: ${response.extras?.resultCodes?.transactionResultCode}');
+        // Get detailed error information
+        final transactionResultCode = response.extras?.resultCodes?.transactionResultCode;
+        final operationResultCodes = response.extras?.resultCodes?.operationsResultCodes;
+        
+        String errorDetails = 'Transaction failed';
+        
+        if (transactionResultCode != null) {
+          errorDetails += ' - Transaction: $transactionResultCode';
+        }
+        
+        if (operationResultCodes != null && operationResultCodes.isNotEmpty) {
+          errorDetails += ' - Operations: ${operationResultCodes.join(', ')}';
+        }
+        
+        // Add specific error explanations
+        if (transactionResultCode == 'tx_failed') {
+          if (operationResultCodes != null && operationResultCodes.contains('op_underfunded')) {
+            errorDetails += ' (Insufficient balance)';
+          } else if (operationResultCodes != null && operationResultCodes.contains('op_no_destination')) {
+            errorDetails += ' (Destination account does not exist)';
+          } else if (operationResultCodes != null && operationResultCodes.contains('op_line_full')) {
+            errorDetails += ' (Destination account cannot receive more of this asset)';
+          } else if (operationResultCodes != null && operationResultCodes.contains('op_no_trust')) {
+            errorDetails += ' (Destination account does not trust this asset)';
+          }
+        }
+        
+        throw Exception(errorDetails);
       }
     } catch (e) {
+      if (e.toString().contains('Transaction failed')) {
+        rethrow; // Re-throw our detailed error
+      }
       throw Exception('Failed to send payment: $e');
     }
   }

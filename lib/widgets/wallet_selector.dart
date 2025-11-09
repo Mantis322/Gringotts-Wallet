@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/wallet_provider.dart';
 import '../models/wallet_model.dart';
+import '../services/wallet_registry_service.dart';
 
 /// Wallet Selector Widget
 /// Displays current wallet and allows switching between wallets
@@ -243,8 +244,8 @@ class WalletSelector extends StatelessWidget {
   }
 
   String _getWalletDisplayName(WalletProvider walletProvider, WalletModel wallet) {
-    final walletIndex = walletProvider.wallets.indexWhere((w) => w.id == wallet.id);
-    return 'Wallet ${walletIndex + 1}';
+    // Use the wallet's actual name instead of generic "Wallet X"
+    return wallet.displayName;
   }
 
   Widget _buildWalletIcon(BuildContext context, WalletModel wallet) {
@@ -408,6 +409,8 @@ class _WalletListSheet extends StatelessWidget {
                           : () async {
                               Navigator.pop(context);
                               await walletProvider.setActiveWallet(wallet.id);
+                              // Refresh display names when switching wallets
+                              await walletProvider.refreshWalletDisplayNames();
                             },
                     ),
                   );
@@ -546,41 +549,61 @@ class _WalletOptionsSheet extends StatelessWidget {
     Navigator.pop(context);
     
     // Show name input dialog
-    final nameController = TextEditingController(text: 'New Wallet');
+    final nameController = TextEditingController(text: 'My Wallet');
     final walletName = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Create New Wallet'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter a name for your new wallet:'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Wallet Name',
-                border: OutlineInputBorder(),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Create New Wallet'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter a name for your new wallet:'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Wallet Name',
+                  hintText: '3-20 chars, letters, numbers, _',
+                  helperText: 'Will be registered as @${nameController.text.isEmpty ? 'walletname' : nameController.text}',
+                  helperStyle: const TextStyle(fontSize: 11),
+                  border: const OutlineInputBorder(),
+                ),
+                autofocus: true,
+                onChanged: (value) {
+                  setDialogState(() {}); // Update helper text
+                },
               ),
-              autofocus: true,
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, nameController.text.trim()),
+              child: const Text('Create'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, nameController.text.trim()),
-            child: const Text('Create'),
-          ),
-        ],
       ),
     );
     
     if (walletName == null || walletName.isEmpty) return;
     
+    // Validate wallet name format
+    final validation = WalletRegistryService.validateWalletName(walletName);
+    if (!validation.isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(validation.error ?? 'Invalid wallet name'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final walletProvider = Provider.of<WalletProvider>(context, listen: false);
     
     // Show loading indicator
@@ -600,6 +623,21 @@ class _WalletOptionsSheet extends StatelessWidget {
     );
     
     try {
+      // Check if wallet name is available
+      final isAvailable = await WalletRegistryService.isWalletNameAvailable(walletName);
+      if (!isAvailable) {
+        if (context.mounted) {
+          Navigator.pop(context); // Close loading dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Wallet name "$walletName" is already taken'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
       final success = await walletProvider.createWallet(name: walletName);
       
       // Check if widget is still mounted
@@ -609,12 +647,39 @@ class _WalletOptionsSheet extends StatelessWidget {
       Navigator.pop(context);
       
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Wallet created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        final wallet = walletProvider.wallet;
+        if (wallet != null) {
+          try {
+            // Register wallet name in Firebase
+            await WalletRegistryService.registerWalletName(
+              walletName: walletName,
+              publicKey: wallet.publicKey,
+              displayName: walletName,
+            );
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Wallet created and registered successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } catch (e) {
+            // Wallet created but registration failed
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Wallet created but name registration failed: $e'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Wallet created successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

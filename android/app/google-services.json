@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "807722126693",
+    "project_id": "gringotts-wallet",
+    "storage_bucket": "gringotts-wallet.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:807722126693:android:baebc37ce7797e6f6a258c",
+        "android_client_info": {
+          "package_name": "com.example.stellar_wallet_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZNx3gyI1ElUiJdXC3HZkNG1_RVUXT1Gw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

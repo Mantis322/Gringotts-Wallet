@@ -311,7 +311,7 @@ class AuthService {
 
   /// Hash PIN for secure storage
   static String _hashPin(String pin) {
-    final bytes = utf8.encode(pin + 'gringotts_salt'); // Add salt
+    final bytes = utf8.encode('${pin}gringotts_salt'); // Add salt
     final digest = sha256.convert(bytes);
     return digest.toString();
   }

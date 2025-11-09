@@ -28,11 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `PaymentOptionsModal` widget with animated cards
   - `PaymentOptionCard` reusable component
   - Coming Soon dialog with construction theme
-  - Enhanced iconography (payment, QR code, NFC icons)
+  - Enhanced iconography (payment, QR code icons)
 
 ### 🔮 Future Payment Methods (Coming Soon)
 - **📱 QR Code Payments**: Scan recipient's QR code for instant transfers
-- **📡 NFC Payments**: Tap-to-pay functionality for seamless transactions
 
 ### 🎨 UI/UX Improvements
 - Modal animations with staggered reveals (300ms-600ms delays)

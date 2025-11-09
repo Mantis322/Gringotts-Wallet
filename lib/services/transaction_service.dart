@@ -69,12 +69,22 @@ class TransactionService {
 
     // Check balance (include fee estimation)
     const estimatedFee = 0.0001; // 100 stroops standard fee
+    const minimumBalance = 1.0; // Minimum 1 XLM required to keep account active
     final totalRequired = parsedAmount + estimatedFee;
+    final remainingBalance = currentBalance - totalRequired;
     
     if (totalRequired > currentBalance) {
       return TransactionValidationResult(
         isValid: false,
         error: AppConstants.errorInsufficientBalance,
+      );
+    }
+    
+    // Check if sending this amount would leave account below minimum balance
+    if (remainingBalance < minimumBalance) {
+      return TransactionValidationResult(
+        isValid: false,
+        error: 'Cannot send this amount. You must keep at least $minimumBalance XLM in your account to keep it active.',
       );
     }
 

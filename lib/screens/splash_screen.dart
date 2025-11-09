@@ -142,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen>
                     return Transform.scale(
                       scale: _logoScale.value,
                       child: Transform.rotate(
-                        angle: _logoRotation.value * 0.5,
+                        angle: _logoRotation.value * 0,
                         child: Container(
                           width: 120,
                           height: 120,
@@ -157,15 +157,20 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.auto_awesome,
-                            color: AppColors.textPrimary,
-                            size: 60,
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/gringotts_logo.png',
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ).animate(delay: 200.ms)
-                            .shimmer(duration: 2000.ms, color: AppColors.accentGold.withOpacity(0.3))
+                            .rotate(duration: 1000.ms, curve: Curves.easeInOut, begin: 0.0, end: 1.0)
                             .then()
-                            .shake(hz: 2, curve: Curves.easeInOut),
+                            .rotate(duration: 800.ms, curve: Curves.easeInOut, begin: 0.0, end: 0.0)
+                            .then()
+                            .shimmer(duration: 1500.ms, color: AppColors.accentGold.withOpacity(0.4)),
                       ),
                     );
                   },
@@ -213,7 +218,7 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 60),
                 
                 // Loading indicator
-                Container(
+                SizedBox(
                   width: 40,
                   height: 40,
                   child: CircularProgressIndicator(

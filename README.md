@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Gringotts Wallet Banner](https://via.placeholder.com/800x300/1A1B3A/FFFFFF?text=🏦+Gringotts+Wallet)
+![Gringotts Wallet Banner](assets\images\Banner.png)
 
 **Your magical vault for digital treasures**
 
@@ -52,11 +52,13 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 - **📊 Complete Transaction History**: Detailed payment tracking
 - **🔄 Real-time Balance Updates**: Live network synchronization
 - **💳 Multiple Payment & Receive Methods**: QR Code, NFC, and traditional transfers
-- **🚀 Smart Payment & Receive Options**: Intuitive selection interfaces for both sending and receiving
+- **🚀 Smart Payment & Receive Options**: Multiple methods including PIN codes ✅
 - **🏦 Multi-Wallet Management**: Create, import, and switch between wallets ✅
 - **🔑 Secret Key Import/Export**: Secure wallet portability ✅
 - **📝 Custom Wallet Naming**: Organize wallets with custom names ✅
 - **⚙️ Advanced Wallet Management**: Rename, delete, export features ✅
+- **🎯 PIN Code Payments**: Generate temporary codes for receiving ✅
+- **🌐 @Walletname Transfers**: Send to @username with Firebase registry ✅
 
 </td>
 </tr>
@@ -128,6 +130,65 @@ graph TB
 ---
 
 ### 🆕 Latest Updates
+
+### 🎯 PIN Code Payment System (v1.5.0)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **PIN Code Payments** | 6-digit temporary payment codes with Firebase backend | ✅ Live |
+| **PIN Code Receiving** | Generate PIN codes for receiving payments with 5-minute expiration | ✅ Live |
+| **Real-time Status Updates** | Live PIN status monitoring with success animations | ✅ Live |
+| **Firebase Integration** | Cloud-based PIN code management and validation | ✅ Live |
+| **Smart Payment Methods** | Multiple send methods: Manual, PIN Code, and @walletname | ✅ Live |
+| **Auto-fill Transaction** | PIN validation auto-fills amount and memo | ✅ Live |
+| **Success Animations** | Beautiful success animations with auto-redirect to home | ✅ Live |
+| **@Walletname System** | Firebase-based username system for easy transfers | ✅ Live |
+
+</div>
+
+#### 🎯 PIN Code Payment Flow
+
+```mermaid
+graph TB
+    A[Receive Options] --> B[Receive with PIN Code]
+    B --> C[Select Wallet] --> D[Enter Amount & Memo]
+    D --> E[Generate 6-Digit PIN] --> F[Display PIN with Timer]
+    F --> G[Real-time Status Monitor]
+    G --> H[PIN Used - Success Animation]
+    H --> I[Auto-redirect to Home]
+    
+    J[Send Options] --> K{Send Method}
+    K --> L[Manual Entry] --> L1[Address/Username Input]
+    K --> M[PIN Code Entry] --> M1[6-Digit PIN Input]
+    M1 --> N[PIN Validation] --> O[Auto-fill Amount & Memo]
+    O --> P[Confirmation Dialog] --> Q[Send Payment]
+    Q --> R[Success - Auto-redirect to Home]
+    
+    subgraph "PIN Code Features"
+        S[5-Minute Expiration]
+        T[Unique Code Generation]
+        U[Firebase Real-time Updates]
+        V[Success Animations]
+        W[Auto Balance Updates]
+    end
+```
+
+### 🌐 @Walletname System (v1.4.5)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **@Walletname Transfers** | Send to @username instead of long addresses | ✅ Live |
+| **Firebase Registry** | Cloud-based wallet name registration system | ✅ Live |
+| **Real-time Validation** | Live username availability checking | ✅ Live |
+| **Automatic Setup Dialog** | Existing users get prompted to setup @walletname | ✅ Live |
+| **Self-transfer Prevention** | Cannot send to your own wallets | ✅ Live |
+| **Name Resolution** | Real-time address resolution with confirmation | ✅ Live |
+
+</div>
 
 ### 📱 QR Code Integration System (v1.4.0)
 
@@ -430,7 +491,9 @@ graph LR
 |----------|------------|---------|---------|
 | **🎯 Framework** | Flutter | 3.35.7 | Cross-platform UI framework |
 | **🌐 Blockchain** | Stellar SDK | 1.9.4 | Blockchain integration |
-| **📷 QR Scanner** | Mobile Scanner | 5.0.0 | QR code scanning |
+| **� Firebase** | Firebase Core | 3.15.2 | Backend services |
+| **☁️ Firestore** | Cloud Firestore | 5.6.12 | PIN codes & wallet registry |
+| **�📷 QR Scanner** | Mobile Scanner | 5.0.0 | QR code scanning |
 | **🔢 QR Generator** | QR Flutter | 4.1.0 | QR code generation |
 | **🔐 Security** | Flutter Secure Storage | 9.2.2 | Encrypted key storage |
 | **🔒 Authentication** | Local Auth | 2.3.0 | Biometric authentication |
@@ -459,12 +522,15 @@ graph LR
 │   ├── 📊 models/
 │   │   ├── wallet_model.dart           # Wallet data structure
 │   │   ├── multi_wallet_model.dart     # Multi-wallet management
-│   │   └── transaction_model.dart      # Transaction data
+│   │   ├── transaction_model.dart      # Transaction data
+│   │   └── pin_code_model.dart         # PIN code data structure
 │   ├── 🔧 services/
 │   │   ├── stellar_service.dart        # Blockchain operations
 │   │   ├── storage_service.dart        # Secure data management
 │   │   ├── transaction_service.dart    # Payment processing
-│   │   └── auth_service.dart           # Authentication & security
+│   │   ├── auth_service.dart           # Authentication & security
+│   │   ├── pin_code_service.dart       # PIN code management
+│   │   └── wallet_registry_service.dart # @Walletname system
 │   ├── 🎭 providers/
 │   │   └── wallet_provider.dart        # App state management
 │   ├── 📱 screens/
@@ -473,9 +539,10 @@ graph LR
 │   │   ├── create_wallet_screen.dart   # Wallet setup
 │   │   ├── backup_secret_key_screen.dart # Secret key backup
 │   │   ├── home_screen.dart            # Main dashboard
-│   │   ├── send_screen.dart            # Transaction sending
+│   │   ├── send_screen.dart            # Enhanced transaction sending
 │   │   ├── qr_receive_screen.dart      # QR code generation for receiving
 │   │   ├── qr_scanner_screen.dart      # QR code scanner for payments
+│   │   ├── pin_receive_screen.dart     # PIN code generation for receiving
 │   │   ├── settings_screen.dart        # App configuration
 │   │   ├── pin_setup_screen.dart       # PIN creation & management
 │   │   ├── pin_unlock_screen.dart      # PIN authentication
@@ -782,7 +849,10 @@ sequenceDiagram
 • Secret key system<br>
 • Wallet import/export<br>
 • Custom wallet naming<br>
-• Wallet management (rename, delete, export)
+• Wallet management (rename, delete, export)<br>
+• PIN code payment system<br>
+• @Walletname system with Firebase<br>
+• QR code payments & receiving
 </td>
 <td>✅ Complete</td>
 </tr>
@@ -904,20 +974,20 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Mantis322/gringotts-wallet/discussions)
 - 🔒 **Security Issues**: security@gringotts-wallet.com
 
-### 🆕 Latest Release Highlights (v1.4.0)
+### 🆕 Latest Release Highlights (v1.5.0)
 
 <div align="center">
 
 | 🎯 **Feature Category** | 🚀 **New Capabilities** | 📊 **Impact** |
 |-------------------------|-------------------------|---------------|
-| **� QR Code Payments** | Complete mobile scanner with camera integration | Revolutionary payment UX |
-| **📷 QR Code Receiving** | Generate payment QR codes with wallet selection | Seamless fund receiving |
-| **� Payment Confirmation** | Interactive confirmation with transaction details | Enhanced security |
-| **🔄 Real-time Processing** | Live validation and transaction execution | Reliable payment flow |
-| **🏦 Multi-Wallet QR Support** | Generate QR codes for any wallet | Complete flexibility |
-| **� Advanced Scanner** | Custom overlay, torch control, error handling | Professional scanner experience |
-| **� Stellar URI Support** | Full web+stellar:pay format compatibility | Industry standard compliance |
-| **🛡️ Transaction Safety** | Proper success/failure handling and history updates | Data integrity assurance |
+| **🎯 PIN Code Payments** | 6-digit temporary codes with Firebase backend | Revolutionary payment simplicity |
+| **⏱️ Real-time PIN Status** | Live monitoring with success animations | Enhanced user experience |
+| **🌐 @Walletname System** | Send to @username instead of long addresses | User-friendly transfers |
+| **� Firebase Integration** | Cloud-based wallet registry and PIN management | Scalable backend infrastructure |
+| **� Success Animations** | Beautiful animations with auto-redirect | Delightful user feedback |
+| **🔄 Auto Balance Updates** | Real-time balance refresh after transactions | Always accurate data |
+| **📱 Enhanced Send Screen** | Multiple send methods with smart validation | Flexible payment options |
+| **🛡️ Smart Confirmations** | Auto-fill transactions from PIN validation | Secure and convenient |
 
 </div>
 

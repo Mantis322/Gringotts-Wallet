@@ -4,11 +4,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../app/theme/colors.dart';
 import '../app/routes.dart';
 import '../providers/wallet_provider.dart';
+import '../services/wallet_registry_service.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/payment_options_modal.dart';
 import '../widgets/receive_options_modal.dart';
 import '../widgets/wallet_selector.dart';
+import '../widgets/wallet_name_setup_dialog.dart';
 
 /// Home Screen
 /// Main wallet dashboard with balance, transactions and quick actions
@@ -33,6 +35,50 @@ class _HomeScreenState extends State<HomeScreen> {
     // If no wallet exists, navigate to create wallet
     if (!walletProvider.hasWallet && mounted) {
       AppRoutes.pushReplacement(context, AppRoutes.createWallet);
+      return;
+    }
+    
+    // Check if existing wallet needs Firebase registration
+    if (walletProvider.hasWallet && mounted) {
+      // First try to load existing display names from Firebase
+      await walletProvider.refreshWalletDisplayNames();
+      
+      // Refresh balance and transactions when home screen loads
+      await walletProvider.refreshBalance();
+      
+      // Then check if any wallet needs registration
+      await _checkWalletRegistration(walletProvider);
+    }
+  }
+
+  Future<void> _checkWalletRegistration(WalletProvider walletProvider) async {
+    try {
+      final currentWallet = walletProvider.wallet;
+      if (currentWallet == null) return;
+
+      final needsRegistration = await WalletRegistryService.doesWalletNeedRegistration(
+        currentWallet.publicKey,
+      );
+
+      if (needsRegistration && mounted) {
+        // Show the setup dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Force user to make a choice
+          builder: (context) => WalletNameSetupDialog(
+            publicKey: currentWallet.publicKey,
+            currentWalletName: currentWallet.name,
+            onCompleted: () {
+              // Refresh wallet provider to get updated display name
+              walletProvider.refreshWalletDisplayNames();
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      // If there's an error, we can silently continue
+      // The user can still use the app normally
+      debugPrint('Error checking wallet registration: $e');
     }
   }
 
@@ -156,12 +202,27 @@ class _HomeScreenState extends State<HomeScreen> {
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-        title: Text(
-          'Gringotts Wallet',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/gringotts_logo.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Gringotts Wallet',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
       actions: [

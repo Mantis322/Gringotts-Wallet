@@ -74,28 +74,16 @@ class PaymentOptionsModal extends StatelessWidget {
             const SizedBox(height: 16),
             
             PaymentOptionCard(
-              icon: Icons.nfc,
-              title: 'Make a Payment with NFC',
-              subtitle: 'Tap to pay with NFC',
-              onTap: () => _showComingSoon(context, 'NFC Payment'),
-              gradient: AppColors.goldGradient,
-            ).animate(delay: 400.ms)
-                .slideX(begin: 0.3, duration: 500.ms)
-                .fadeIn(duration: 500.ms),
-            
-            const SizedBox(height: 16),
-            
-            PaymentOptionCard(
               icon: Icons.send,
               title: 'Transfer XLM',
-              subtitle: 'Traditional wallet transfer',
+              subtitle: 'Send to wallet address, @walletname or PIN code',
               onTap: () {
                 Navigator.pop(context);
                 AppRoutes.push(context, AppRoutes.send);
               },
               gradient: AppColors.primaryGradient,
-            ).animate(delay: 500.ms)
-                .slideX(begin: -0.3, duration: 500.ms)
+            ).animate(delay: 400.ms)
+                .slideX(begin: 0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
             const SizedBox(height: 24),
@@ -118,57 +106,7 @@ class PaymentOptionsModal extends StatelessWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context, String feature) {
-    Navigator.pop(context); // Close the modal first
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            Icon(
-              Icons.construction,
-              color: AppColors.warningYellow,
-              size: 24,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Coming Soon',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          '$feature is currently under development.\n\nThis feature will be available in a future update with enhanced security and magical user experience.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Got it',
-              style: TextStyle(
-                color: AppColors.primaryPurple,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ).animate()
-          .scale(duration: 300.ms, curve: Curves.elasticOut)
-          .fadeIn(duration: 300.ms),
-    );
-  }
+
 }
 
 class PaymentOptionCard extends StatelessWidget {

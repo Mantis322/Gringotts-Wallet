@@ -134,7 +134,7 @@ class WalletModel {
   bool get hasSecretKey => secretKey != null && secretKey!.isNotEmpty;
   String get displayBalance => balance.toStringAsFixed(7);
   String get shortPublicKey => hasWallet ? '${publicKey.substring(0, 6)}...${publicKey.substring(publicKey.length - 6)}' : '';
-  String get displayName => name.isNotEmpty ? name : 'Wallet ${shortPublicKey}';
+  String get displayName => name.isNotEmpty ? name : 'Wallet $shortPublicKey';
   String get networkType => isTestnet ? 'Testnet' : 'Mainnet';
   
   @override

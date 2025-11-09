@@ -7,6 +7,7 @@ import '../providers/wallet_provider.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/wallet_card.dart';
 import '../services/storage_service.dart';
+import '../services/wallet_registry_service.dart';
 import 'backup_secret_key_screen.dart';
 
 /// Create Wallet Screen
@@ -43,26 +44,85 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       return;
     }
 
+    // Validate wallet name format
+    final validation = WalletRegistryService.validateWalletName(walletName);
+    if (!validation.isValid) {
+      _showSnackBar(validation.error ?? 'Invalid wallet name', Colors.red);
+      return;
+    }
+
     setState(() => _isCreatingWallet = true);
     
     try {
+      // Check if wallet name is available
+      final isAvailable = await WalletRegistryService.isWalletNameAvailable(walletName);
+      if (!isAvailable) {
+        setState(() => _isCreatingWallet = false);
+        _showSnackBar('Wallet name "$walletName" is already taken', Colors.red);
+        return;
+      }
+
+      // Show loading feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text('Creating your wallet...'),
+            ],
+          ),
+          backgroundColor: AppColors.primaryPurple,
+          duration: Duration(seconds: 5),
+        ),
+      );
+      
       final walletProvider = Provider.of<WalletProvider>(context, listen: false);
       final success = await walletProvider.createWallet(name: walletName);
       
       if (success && mounted) {
-        // Secret key'i al ve backup ekranını göster
-        final secretKey = walletProvider.wallet?.secretKey ?? '';
-        if (secretKey.isNotEmpty) {
-          _showBackupSecretKeyScreen(secretKey);
+        // Close loading dialog
+        Navigator.pop(context);
+        
+        final wallet = walletProvider.wallet;
+        if (wallet != null) {
+          try {
+            // Register wallet name in Firebase
+            await WalletRegistryService.registerWalletName(
+              walletName: walletName,
+              publicKey: wallet.publicKey,
+              displayName: walletName,
+            );
+            
+            _showSnackBar('Wallet created and registered successfully!', AppColors.primaryPurple);
+          } catch (e) {
+            // Wallet created but registration failed - still show backup
+            _showSnackBar('Wallet created but name registration failed: $e', Colors.orange);
+          }
+          
+          // Secret key'i al ve backup ekranını göster
+          final secretKey = wallet.secretKey ?? '';
+          if (secretKey.isNotEmpty) {
+            _showBackupSecretKeyScreen(secretKey);
+          } else {
+            _navigateToHome();
+          }
         } else {
           _navigateToHome();
         }
       } else if (mounted) {
-        _showSnackBar('Failed to create wallet', Colors.red);
+        _showSnackBar('Failed to create wallet: ${walletProvider.error ?? 'Unknown error'}', Colors.red);
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog('Error creating wallet: $e');
+        _showSnackBar('Error creating wallet: $e', Colors.red);
       }
     } finally {
       if (mounted) {
@@ -97,9 +157,45 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       return;
     }
 
+    // Validate wallet name format
+    final validation = WalletRegistryService.validateWalletName(walletName);
+    if (!validation.isValid) {
+      _showSnackBar(validation.error ?? 'Invalid wallet name', Colors.red);
+      return;
+    }
+
     setState(() => _isImportingWallet = true);
     
     try {
+      // Check if wallet name is available
+      final isAvailable = await WalletRegistryService.isWalletNameAvailable(walletName);
+      if (!isAvailable) {
+        _showSnackBar('Wallet name "$walletName" is already taken', Colors.red);
+        return;
+      }
+
+      // Show loading feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text('Importing your wallet...'),
+            ],
+          ),
+          backgroundColor: AppColors.primaryPurple,
+          duration: Duration(seconds: 5),
+        ),
+      );
+      
       final walletProvider = Provider.of<WalletProvider>(context, listen: false);
       final success = await walletProvider.importWalletFromSecretKey(
         secretKey: _secretKeyController.text.trim(),
@@ -108,13 +204,30 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       );
       
       if (success && mounted) {
+        final wallet = walletProvider.wallet;
+        if (wallet != null) {
+          try {
+            // Register wallet name in Firebase
+            await WalletRegistryService.registerWalletName(
+              walletName: walletName,
+              publicKey: wallet.publicKey,
+              displayName: walletName,
+            );
+            
+            _showSnackBar('Wallet imported and registered successfully!', AppColors.primaryPurple);
+          } catch (e) {
+            // Wallet imported but registration failed
+            _showSnackBar('Wallet imported but name registration failed: $e', Colors.orange);
+          }
+        }
+        
         _navigateToHome();
       } else if (mounted) {
-        _showErrorDialog('Failed to import wallet. Please check your secret key.');
+        _showSnackBar('Failed to import wallet. Please check your secret key.', Colors.red);
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog('Error importing wallet: $e');
+        _showSnackBar('Error importing wallet: $e', Colors.red);
       }
     } finally {
       if (mounted) {
@@ -323,8 +436,10 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
               TextField(
                 controller: _walletNameController,
                 decoration: InputDecoration(
-                  hintText: 'Enter wallet name',
+                  hintText: 'Enter wallet name (3-20 chars, letters, numbers, _)',
                   hintStyle: TextStyle(color: AppColors.textSecondary),
+                  helperText: 'This name will be registered globally as @${_walletNameController.text.isEmpty ? 'walletname' : _walletNameController.text}',
+                  helperStyle: TextStyle(color: AppColors.textTertiary, fontSize: 11),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: AppColors.borderLight),
@@ -337,6 +452,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                   fillColor: AppColors.backgroundDark,
                 ),
                 style: TextStyle(color: AppColors.textPrimary),
+                onChanged: (value) => setState(() {}), // Update helper text
               ),
             ],
           ),
@@ -443,7 +559,9 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
             controller: _importNameController,
             decoration: InputDecoration(
               labelText: 'Wallet Name',
-              hintText: 'Enter a name for this wallet',
+              hintText: 'Enter a name for this wallet (3-20 chars)',
+              helperText: 'This name will be registered globally as @${_importNameController.text.isEmpty ? 'walletname' : _importNameController.text}',
+              helperStyle: TextStyle(color: AppColors.textTertiary, fontSize: 11),
               labelStyle: TextStyle(color: AppColors.textSecondary),
               hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
               border: OutlineInputBorder(
@@ -457,6 +575,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
               prefixIcon: Icon(Icons.label_outline, color: AppColors.primaryPurple),
             ),
             style: TextStyle(color: AppColors.textPrimary),
+            onChanged: (value) => setState(() {}), // Update helper text
           ),
 
           const SizedBox(height: 16),
@@ -525,4 +644,6 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
         .slideY(begin: 0.3, duration: 600.ms)
         .fadeIn(duration: 600.ms);
   }
+
+
 }

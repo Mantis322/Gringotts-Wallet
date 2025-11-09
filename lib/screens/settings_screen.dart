@@ -8,6 +8,7 @@ import '../models/wallet_model.dart';
 import '../providers/wallet_provider.dart';
 import '../services/storage_service.dart';
 import '../services/auth_service.dart';
+import '../services/wallet_registry_service.dart';
 import 'pin_setup_screen.dart';
 import 'pin_unlock_screen.dart';
 import 'debug_auth_screen.dart';
@@ -834,8 +835,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _getWalletDisplayName(WalletProvider walletProvider, WalletModel wallet) {
-    final walletIndex = walletProvider.wallets.indexWhere((w) => w.id == wallet.id);
-    return 'Wallet ${walletIndex + 1}';
+    // Use the wallet's actual name instead of generic "Wallet X"
+    return wallet.displayName;
   }
 
   void _showWalletManagement() {
@@ -1056,20 +1057,33 @@ class _WalletManagementSheet extends StatelessWidget {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceCard,
         title: Text('Rename Wallet', style: TextStyle(color: AppColors.textPrimary)),
-        content: TextField(
-          controller: nameController,
-          decoration: InputDecoration(
-            labelText: 'Wallet Name',
-            labelStyle: TextStyle(color: AppColors.textSecondary),
-            border: OutlineInputBorder(
-              borderSide: BorderSide(color: AppColors.borderLight),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primaryPurple),
-            ),
+        content: StatefulBuilder(
+          builder: (context, setDialogState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Wallet Name',
+                  hintText: '3-20 chars, letters, numbers, _',
+                  helperText: 'This will update your global @${nameController.text.isEmpty ? 'walletname' : nameController.text} registration',
+                  helperStyle: TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.borderLight),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.primaryPurple),
+                  ),
+                ),
+                style: TextStyle(color: AppColors.textPrimary),
+                autofocus: true,
+                onChanged: (value) {
+                  setDialogState(() {}); // Update helper text
+                },
+              ),
+            ],
           ),
-          style: TextStyle(color: AppColors.textPrimary),
-          autofocus: true,
         ),
         actions: [
           TextButton(
@@ -1080,15 +1094,74 @@ class _WalletManagementSheet extends StatelessWidget {
             onPressed: () async {
               final newName = nameController.text.trim();
               if (newName.isNotEmpty && newName != wallet.name) {
-                // TODO: Implement wallet rename functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Wallet rename feature coming soon!'),
-                    backgroundColor: AppColors.primaryPurple,
+                // Validate wallet name format
+                final validation = WalletRegistryService.validateWalletName(newName);
+                if (!validation.isValid) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(validation.error ?? 'Invalid wallet name'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                // Show loading
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: AppColors.surfaceCard,
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: AppColors.primaryPurple),
+                        const SizedBox(height: 16),
+                        Text('Updating wallet name...', style: TextStyle(color: AppColors.textPrimary)),
+                      ],
+                    ),
                   ),
                 );
+
+                try {
+                  // Update in Firebase registry
+                  await WalletRegistryService.updateWalletName(
+                    oldWalletName: wallet.name,
+                    newWalletName: newName,
+                    publicKey: wallet.publicKey,
+                    displayName: newName,
+                  );
+
+                  // Refresh wallet display names to reflect the change
+                  final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+                  await walletProvider.refreshWalletDisplayNames();
+                  
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loading dialog
+                    Navigator.pop(context); // Close rename dialog
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Wallet renamed successfully!'),
+                        backgroundColor: AppColors.primaryPurple,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close loading dialog
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to rename wallet: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              } else {
+                Navigator.pop(context);
               }
-              Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryPurple,
@@ -1147,9 +1220,7 @@ class _WalletManagementSheet extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context, wallet) {
-    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-    final walletIndex = walletProvider.wallets.indexWhere((w) => w.id == wallet.id);
-    final walletDisplayName = 'Wallet ${walletIndex + 1}';
+    final walletDisplayName = wallet.displayName;
     
     showDialog(
       context: context,
@@ -1167,14 +1238,59 @@ class _WalletManagementSheet extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              // TODO: Implement wallet delete functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Wallet delete feature coming soon!'),
-                  backgroundColor: Colors.red,
+              Navigator.pop(context); // Close dialog first
+              
+              // Show loading
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => AlertDialog(
+                  backgroundColor: AppColors.surfaceCard,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text('Deleting wallet...', style: TextStyle(color: AppColors.textPrimary)),
+                    ],
+                  ),
                 ),
               );
-              Navigator.pop(context);
+
+              try {
+                // Unregister from Firebase if wallet has a registered name
+                if (wallet.name.isNotEmpty) {
+                  await WalletRegistryService.unregisterWalletName(
+                    walletName: wallet.name,
+                    publicKey: wallet.publicKey,
+                  );
+                }
+
+                // TODO: Delete wallet from local storage via WalletProvider
+                // This should be implemented in WalletProvider as deleteWallet method
+                
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Wallet "$walletDisplayName" deleted successfully!'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete wallet: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,

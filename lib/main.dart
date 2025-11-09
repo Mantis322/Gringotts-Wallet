@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'app/theme/app_theme.dart';
 import 'app/routes.dart';
 import 'providers/wallet_provider.dart';
 import 'widgets/auth_guard.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(

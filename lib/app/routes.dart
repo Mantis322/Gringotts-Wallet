@@ -7,6 +7,7 @@ import '../screens/send_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/qr_receive_screen.dart';
 import '../screens/qr_scanner_screen.dart';
+import '../screens/pin_receive_screen.dart';
 
 /// Application Route Management
 /// Centralized navigation and route handling
@@ -22,6 +23,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String qrReceive = '/qr-receive';
   static const String qrScanner = '/qr-scanner';
+  static const String pinReceive = '/pin-receive';
   
   // Generate Routes
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -49,6 +51,9 @@ class AppRoutes {
       
       case qrScanner:
         return _createRoute(const QRScannerScreen());
+      
+      case pinReceive:
+        return _createRoute(const PinReceiveScreen());
       
       default:
         return _createRoute(

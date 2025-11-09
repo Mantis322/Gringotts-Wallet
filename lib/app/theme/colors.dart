@@ -24,6 +24,11 @@ class AppColors {
   static const Color warningYellow = Color(0xFFFBBF24);
   static const Color errorRed = Color(0xFFEF4444);
   
+  // Semantic Colors (aliases for easier use)
+  static const Color success = successGreen;
+  static const Color warning = warningOrange;
+  static const Color error = errorRed;
+  
   // Background Colors
   static const Color backgroundDark = primaryDark;
   
@@ -32,6 +37,7 @@ class AppColors {
   static const Color surfaceCard = Color(0xFF1F2937);
   static const Color surfaceElevated = Color(0xFF374151);
   static const Color surfaceLight = Color(0xFFF9FAFB);
+  static const Color surfaceInput = Color(0xFF111827);
   
   // Text Colors
   static const Color textPrimary = Color(0xFFFFFFFF);

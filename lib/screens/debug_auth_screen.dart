@@ -88,7 +88,7 @@ class _DebugAuthScreenState extends State<DebugAuthScreen> {
                         style: const TextStyle(fontFamily: 'monospace'),
                       ),
                     );
-                  }).toList(),
+                  }),
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () async {
