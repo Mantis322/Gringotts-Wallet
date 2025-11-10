@@ -396,7 +396,9 @@ class _HomeScreenState extends State<HomeScreen> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: walletProvider.transactions.length,
             itemBuilder: (context, index) {
-              final transaction = walletProvider.transactions[index];
+              // Reverse the list so newest transactions appear first
+              final reversedIndex = walletProvider.transactions.length - 1 - index;
+              final transaction = walletProvider.transactions[reversedIndex];
               return TransactionCard(
                 hash: transaction.shortHash,
                 type: transaction.type.name,

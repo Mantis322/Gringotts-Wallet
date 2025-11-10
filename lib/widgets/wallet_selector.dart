@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/wallet_provider.dart';
 import '../models/wallet_model.dart';
@@ -605,33 +606,54 @@ class _WalletOptionsSheet extends StatelessWidget {
     }
 
     final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+    final navigator = Navigator.of(context);
     
-    // Show loading indicator
-    showDialog(
+    // Show loading indicator and store the context
+    late BuildContext? dialogContext;
+    
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Creating wallet...'),
-          ],
-        ),
-      ),
+      builder: (ctx) {
+        dialogContext = ctx;
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Creating wallet...'),
+              ],
+            ),
+          ),
+        );
+      },
     );
     
     try {
       // Check if wallet name is available
       final isAvailable = await WalletRegistryService.isWalletNameAvailable(walletName);
       if (!isAvailable) {
+        // Close dialog using the stored context
+        if (dialogContext != null && dialogContext!.mounted) {
+          Navigator.of(dialogContext!).pop();
+        } else {
+          try {
+            navigator.pop();
+          } catch (e) {
+            debugPrint('Dialog close fallback failed: $e');
+          }
+        }
+        
+        await Future.delayed(const Duration(milliseconds: 300));
         if (context.mounted) {
-          Navigator.pop(context); // Close loading dialog
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Wallet name "$walletName" is already taken'),
+              content: Text('❌ Wallet name "$walletName" is already taken'),
               backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
             ),
           );
         }
@@ -640,11 +662,18 @@ class _WalletOptionsSheet extends StatelessWidget {
 
       final success = await walletProvider.createWallet(name: walletName);
       
-      // Check if widget is still mounted
-      if (!context.mounted) return;
+      // Close dialog using the stored context
+      if (dialogContext != null && dialogContext!.mounted) {
+        Navigator.of(dialogContext!).pop();
+      } else {
+        try {
+          navigator.pop();
+        } catch (e) {
+          debugPrint('Dialog close fallback failed: $e');
+        }
+      }
       
-      // Always close loading dialog first
-      Navigator.pop(context);
+      if (!context.mounted) return;
       
       if (success) {
         final wallet = walletProvider.wallet;
@@ -657,49 +686,76 @@ class _WalletOptionsSheet extends StatelessWidget {
               displayName: walletName,
             );
             
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Wallet created and registered successfully!'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            // Wait a bit for UI to update then show success
+            await Future.delayed(const Duration(milliseconds: 300));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🎉 Wallet created and registered successfully!'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
           } catch (e) {
             // Wallet created but registration failed
+            await Future.delayed(const Duration(milliseconds: 300));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('⚠️ Wallet created but name registration failed: $e'),
+                  backgroundColor: Colors.orange,
+                  duration: Duration(seconds: 4),
+                ),
+              );
+            }
+          }
+        } else {
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Wallet created but name registration failed: $e'),
-                backgroundColor: Colors.orange,
+              const SnackBar(
+                content: Text('🎉 Wallet created successfully!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
               ),
             );
           }
-        } else {
+        }
+      } else {
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Wallet created successfully!'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: Text('❌ Failed to create wallet: ${walletProvider.error}'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
             ),
           );
         }
+      }
+    } catch (e) {
+      // Close dialog using the stored context
+      if (dialogContext != null && dialogContext!.mounted) {
+        Navigator.of(dialogContext!).pop();
       } else {
+        try {
+          navigator.pop();
+        } catch (e2) {
+          debugPrint('Dialog close fallback failed: $e2');
+        }
+      }
+      
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create wallet: ${walletProvider.error}'),
+            content: Text('❌ Error creating wallet: $e'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
           ),
         );
       }
-    } catch (e) {
-      // Check if widget is still mounted
-      if (!context.mounted) return;
-      
-      // Always close loading dialog first
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -734,7 +790,7 @@ class _WalletOptionsSheet extends StatelessWidget {
                 hintText: 'Enter secret key starting with S',
                 border: OutlineInputBorder(),
               ),
-              maxLines: 2,
+              maxLines: 1,
               obscureText: true,
             ),
           ],
@@ -746,24 +802,33 @@ class _WalletOptionsSheet extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(context); // Close import dialog
               
               final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+              final navigator = Navigator.of(context);
               
-              // Show loading
-              showDialog(
+              // Show loading dialog and store the context
+              late BuildContext? dialogContext;
+              
+              showDialog<void>(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const AlertDialog(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Importing wallet...'),
-                    ],
-                  ),
-                ),
+                builder: (ctx) {
+                  dialogContext = ctx;
+                  return WillPopScope(
+                    onWillPop: () async => false,
+                    child: const AlertDialog(
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Importing wallet...'),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
               
               try {
@@ -772,39 +837,65 @@ class _WalletOptionsSheet extends StatelessWidget {
                   name: nameController.text.trim(),
                 );
                 
-                // Check if widget is still mounted
-                if (!context.mounted) return;
-                
-                // Always close loading dialog first
-                Navigator.pop(context);
-                
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Wallet imported successfully!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                // Close dialog using the stored context
+                if (dialogContext != null && dialogContext!.mounted) {
+                  Navigator.of(dialogContext!).pop();
                 } else {
+                  // Fallback: try to close with original context
+                  try {
+                    navigator.pop();
+                  } catch (e) {
+                    debugPrint('Dialog close fallback failed: $e');
+                  }
+                }
+                
+                // Wait a bit for UI to update then show result
+                await Future.delayed(const Duration(milliseconds: 300));
+                
+                if (context.mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('🎉 Wallet imported successfully!'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('❌ Failed to import wallet: ${walletProvider.error}'),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                // Close dialog using the stored context
+                if (dialogContext != null && dialogContext!.mounted) {
+                  Navigator.of(dialogContext!).pop();
+                } else {
+                  // Fallback: try to close with original context
+                  try {
+                    navigator.pop();
+                  } catch (e2) {
+                    debugPrint('Dialog close fallback failed: $e2');
+                  }
+                }
+                
+                // Wait a bit for UI to update then show error
+                await Future.delayed(const Duration(milliseconds: 300));
+                
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to import wallet: ${walletProvider.error}'),
+                      content: Text('❌ Error importing wallet: $e'),
                       backgroundColor: Colors.red,
+                      duration: Duration(seconds: 4),
                     ),
                   );
                 }
-              } catch (e) {
-                // Check if widget is still mounted
-                if (!context.mounted) return;
-                
-                // Always close loading dialog first
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
               }
             },
             child: const Text('Import'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../app/theme/colors.dart';
@@ -1240,48 +1241,108 @@ class _WalletManagementSheet extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(context); // Close dialog first
               
-              // Show loading
-              showDialog(
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              
+              // Show loading dialog and store the context
+              late BuildContext? dialogContext;
+              
+              showDialog<void>(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => AlertDialog(
-                  backgroundColor: AppColors.surfaceCard,
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text('Deleting wallet...', style: TextStyle(color: AppColors.textPrimary)),
-                    ],
-                  ),
-                ),
+                builder: (ctx) {
+                  dialogContext = ctx;
+                  return WillPopScope(
+                    onWillPop: () async => false,
+                    child: AlertDialog(
+                      backgroundColor: AppColors.surfaceCard,
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: Colors.red),
+                          const SizedBox(height: 16),
+                          Text('Deleting wallet...', style: TextStyle(color: AppColors.textPrimary)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
 
               try {
-                // Unregister from Firebase if wallet has a registered name
-                if (wallet.name.isNotEmpty) {
-                  await WalletRegistryService.unregisterWalletName(
-                    walletName: wallet.name,
-                    publicKey: wallet.publicKey,
-                  );
+                final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+                
+                // Delete wallet from local storage first
+                final deleteSuccess = await walletProvider.deleteWallet(wallet.id);
+                
+                if (!deleteSuccess) {
+                  // Close dialog using the stored context
+                  if (dialogContext != null && dialogContext!.mounted) {
+                    Navigator.of(dialogContext!).pop();
+                  } else {
+                    try {
+                      navigator.pop();
+                    } catch (e) {
+                      debugPrint('Dialog close fallback failed: $e');
+                    }
+                  }
+                  
+                  if (context.mounted) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text(walletProvider.error ?? 'Failed to delete wallet'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                  return;
                 }
-
-                // TODO: Delete wallet from local storage via WalletProvider
-                // This should be implemented in WalletProvider as deleteWallet method
+                
+                // If local deletion successful, unregister from Firebase
+                if (wallet.name.isNotEmpty) {
+                  try {
+                    await WalletRegistryService.unregisterWalletName(
+                      walletName: wallet.name,
+                      publicKey: wallet.publicKey,
+                    );
+                  } catch (e) {
+                    // Firebase unregistration failed but local deletion succeeded
+                    debugPrint('Firebase unregistration failed: $e');
+                  }
+                }
+                
+                // Close dialog using the stored context
+                if (dialogContext != null && dialogContext!.mounted) {
+                  Navigator.of(dialogContext!).pop();
+                } else {
+                  try {
+                    navigator.pop();
+                  } catch (e) {
+                    debugPrint('Dialog close fallback failed: $e');
+                  }
+                }
                 
                 if (context.mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('Wallet "$walletDisplayName" deleted successfully!'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: Colors.green,
                     ),
                   );
                 }
               } catch (e) {
+                // Close dialog using the stored context
+                if (dialogContext != null && dialogContext!.mounted) {
+                  Navigator.of(dialogContext!).pop();
+                } else {
+                  try {
+                    navigator.pop();
+                  } catch (e2) {
+                    debugPrint('Dialog close fallback failed: $e2');
+                  }
+                }
+                
                 if (context.mounted) {
-                  Navigator.pop(context); // Close loading dialog
                   
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

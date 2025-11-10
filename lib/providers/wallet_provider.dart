@@ -498,5 +498,51 @@ class WalletProvider with ChangeNotifier {
       debugPrint('Error refreshing wallet display names: $e');
     }
   }
+
+  /// Delete a wallet from storage and update state
+  Future<bool> deleteWallet(String walletId) async {
+    try {
+      _setLoading(true);
+      _setError(null);
+
+      // Cannot delete active wallet
+      if (_multiWallet.activeWalletId == walletId) {
+        _setError('Cannot delete active wallet. Switch to another wallet first.');
+        return false;
+      }
+
+      // Cannot delete if only one wallet remains
+      if (_multiWallet.wallets.length <= 1) {
+        _setError('Cannot delete the only wallet. Create another wallet first.');
+        return false;
+      }
+
+      // Remove wallet from list
+      final updatedWallets = _multiWallet.wallets
+          .where((wallet) => wallet.id != walletId)
+          .toList();
+
+      // Update multi-wallet model
+      _multiWallet = MultiWalletModel(
+        wallets: updatedWallets,
+        activeWalletId: _multiWallet.activeWalletId,
+      );
+
+      // Save updated wallets to storage
+      await StorageService.saveMultiWalletData(_multiWallet);
+
+      debugPrint('WalletProvider: Deleted wallet with ID: $walletId');
+      
+      notifyListeners();
+      return true;
+      
+    } catch (e) {
+      _setError('Failed to delete wallet: $e');
+      debugPrint('Error deleting wallet: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
   
 }

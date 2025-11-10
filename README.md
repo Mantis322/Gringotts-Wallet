@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Gringotts Wallet Banner](https://github.com/Mantis322/Gringotts-Wallet/blob/main/assets/images/Banner.png)
+![Gringotts Wallet Banner](assets\images\Banner.png)
 
 **Your magical vault for digital treasures**
 
