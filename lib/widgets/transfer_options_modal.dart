@@ -3,8 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../app/theme/colors.dart';
 import '../app/routes.dart';
 
-class ReceiveOptionsModal extends StatelessWidget {
-  const ReceiveOptionsModal({super.key});
+class TransferOptionsModal extends StatelessWidget {
+  const TransferOptionsModal({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class ReceiveOptionsModal extends StatelessWidget {
             
             // Title
             Text(
-              'Receive XLM',
+              'Send Transfer',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -46,7 +46,7 @@ class ReceiveOptionsModal extends StatelessWidget {
             const SizedBox(height: 8),
             
             Text(
-              'Choose how you want to receive XLM',
+              'Choose your preferred transfer method',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -57,14 +57,14 @@ class ReceiveOptionsModal extends StatelessWidget {
             
             const SizedBox(height: 32),
             
-            // Receive Options
-            ReceiveOptionCard(
+            // Transfer Options
+            TransferOptionCard(
               icon: Icons.qr_code_scanner,
-              title: 'Receive with QR Code',
-              subtitle: 'Show your QR code to sender',
+              title: 'Send with QR Code',
+              subtitle: 'Scan recipient\'s QR code',
               onTap: () {
                 Navigator.pop(context);
-                AppRoutes.push(context, AppRoutes.qrReceive);
+                AppRoutes.push(context, AppRoutes.qrScanner);
               },
               gradient: AppColors.accentGradient,
             ).animate(delay: 300.ms)
@@ -73,17 +73,17 @@ class ReceiveOptionsModal extends StatelessWidget {
             
             const SizedBox(height: 16),
             
-            ReceiveOptionCard(
-              icon: Icons.pin,
-              title: 'Receive with PIN Code',
-              subtitle: 'Generate a 6-digit PIN for transfers',
+            TransferOptionCard(
+              icon: Icons.send,
+              title: 'Transfer XLM',
+              subtitle: 'Send to wallet address, @walletname or PIN code',
               onTap: () {
                 Navigator.pop(context);
-                AppRoutes.push(context, AppRoutes.pinReceive);
+                AppRoutes.push(context, AppRoutes.send);
               },
               gradient: AppColors.primaryGradient,
             ).animate(delay: 400.ms)
-                .slideX(begin: -0.3, duration: 500.ms)
+                .slideX(begin: 0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
             const SizedBox(height: 24),
@@ -97,7 +97,7 @@ class ReceiveOptionsModal extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
-            ).animate(delay: 500.ms)
+            ).animate(delay: 600.ms)
                 .slideY(begin: 0.3, duration: 400.ms)
                 .fadeIn(duration: 400.ms),
           ],
@@ -105,18 +105,16 @@ class ReceiveOptionsModal extends StatelessWidget {
       ),
     );
   }
-
-
 }
 
-class ReceiveOptionCard extends StatelessWidget {
+class TransferOptionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
   final LinearGradient gradient;
 
-  const ReceiveOptionCard({
+  const TransferOptionCard({
     super.key,
     required this.icon,
     required this.title,

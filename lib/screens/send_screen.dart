@@ -128,7 +128,7 @@ class _SendScreenState extends State<SendScreen> {
           // Check if user is trying to send to the currently active wallet by name
           if (currentWallet != null && resolvedPublicKey == currentWallet.publicKey) {
             setState(() {
-              _validationError = 'Cannot send to your currently active wallet (${destinationAddress})';
+              _validationError = 'Cannot send to your currently active wallet ($destinationAddress)';
               _validationResult = null;
               _resolvedAddress = null;
               _resolvedWalletName = null;
@@ -144,7 +144,7 @@ class _SendScreenState extends State<SendScreen> {
           destinationAddress = resolvedPublicKey;
         } else {
           setState(() {
-            _validationError = 'Wallet name "${destinationAddress}" not found';
+            _validationError = 'Wallet name "$destinationAddress" not found';
             _validationResult = null;
             _resolvedAddress = null;
             _resolvedWalletName = null;
@@ -231,7 +231,7 @@ class _SendScreenState extends State<SendScreen> {
         setState(() => _isSending = false);
         _showErrorDialog(
           'Account Not Found',
-          'The destination account does not exist on the Stellar network.\n\nThe recipient must first create and activate their Stellar account to receive payments.',
+          'The destination account does not exist on the Stellar network.\n\nThe recipient must first create and activate their Stellar account to receive transfers.',
         );
         return;
       }
@@ -260,7 +260,7 @@ class _SendScreenState extends State<SendScreen> {
       );
 
       if (success && mounted) {
-        // Mark PIN code as used if payment was made with PIN
+        // Mark PIN code as used if transfer was made with PIN
         if (_usedPinCode != null) {
           try {
             await PinCodeService.usePinCode(_usedPinCode!.id);
@@ -1372,11 +1372,11 @@ class _SendScreenState extends State<SendScreen> {
         _usedPinCode = null;
       } else {
         setState(() => _isSending = false);
-        _showErrorDialog('Transaction Failed', 'Failed to send payment');
+        _showErrorDialog('Transaction Failed', 'Failed to send transfer');
       }
     } catch (e) {
       setState(() => _isSending = false);
-      _showErrorDialog('Transaction Error', 'Failed to send payment: ${e.toString()}');
+      _showErrorDialog('Transaction Error', 'Failed to send transfer: ${e.toString()}');
     }
   }
 }

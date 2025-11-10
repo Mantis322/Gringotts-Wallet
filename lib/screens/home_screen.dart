@@ -7,7 +7,7 @@ import '../providers/wallet_provider.dart';
 import '../services/wallet_registry_service.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/wallet_card.dart';
-import '../widgets/payment_options_modal.dart';
+import '../widgets/transfer_options_modal.dart';
 import '../widgets/receive_options_modal.dart';
 import '../widgets/wallet_selector.dart';
 import '../widgets/wallet_name_setup_dialog.dart';
@@ -88,12 +88,12 @@ class _HomeScreenState extends State<HomeScreen> {
     await walletProvider.loadTransactions();
   }
 
-  void _showPaymentOptions() {
+  void _showTransferOptions() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const PaymentOptionsModal(),
+      builder: (context) => const TransferOptionsModal(),
     );
   }
 
@@ -297,10 +297,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: QuickActionCard(
-                  icon: Icons.payment,
-                  title: 'Make a Payment',
+                  icon: Icons.send,
+                  title: 'Send Transfer',
                   subtitle: 'Multiple options',
-                  onTap: _showPaymentOptions,
+                  onTap: _showTransferOptions,
                   gradient: AppColors.primaryGradient,
                 ).animate(delay: 600.ms)
                     .slideY(begin: 0.3, duration: 500.ms)
