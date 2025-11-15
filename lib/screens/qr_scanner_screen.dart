@@ -598,7 +598,7 @@ class PaymentConfirmationDialog extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        Icons.attach_money,
+                        Icons.monetization_on,
                         color: AppColors.primaryPurple,
                         size: 20,
                       ),

@@ -167,6 +167,20 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
     setState(() => _isImportingWallet = true);
     
     try {
+      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+      
+      // Check if this secret key is already imported
+      final secretKey = _secretKeyController.text.trim();
+      final existingWallet = walletProvider.wallets.where(
+        (wallet) => wallet.secretKey == secretKey
+      ).firstOrNull;
+      
+      if (existingWallet != null) {
+        setState(() => _isImportingWallet = false);
+        _showDuplicateWalletWarning(existingWallet.name);
+        return;
+      }
+      
       // Check if wallet name is available
       final isAvailable = await WalletRegistryService.isWalletNameAvailable(walletName);
       if (!isAvailable) {
@@ -196,7 +210,6 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
         ),
       );
       
-      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
       final success = await walletProvider.importWalletFromSecretKey(
         secretKey: _secretKeyController.text.trim(),
         name: walletName,
@@ -645,5 +658,73 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
         .fadeIn(duration: 600.ms);
   }
 
-
+  void _showDuplicateWalletWarning(String existingWalletName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceCard,
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Wallet Already Exists',
+                style: TextStyle(color: AppColors.textPrimary),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This wallet is already imported in your active wallets.',
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryPurple.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.primaryPurple.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.account_balance_wallet, 
+                       color: AppColors.primaryPurple, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Existing Wallet: $existingWalletName',
+                      style: TextStyle(
+                        color: AppColors.textPrimary, 
+                        fontWeight: FontWeight.w600
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'You can switch to this wallet from the home screen wallet selector.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'OK',
+              style: TextStyle(color: AppColors.primaryPurple),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

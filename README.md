@@ -59,6 +59,9 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 - **⚙️ Advanced Wallet Management**: Rename, delete, export features ✅
 - **🎯 PIN Code Payments**: Generate temporary codes for receiving ✅
 - **🌐 @Walletname Transfers**: Send to @username with Firebase registry ✅
+- **💸 Split Bill System**: Create bills, invite participants, real Stellar payments ✅
+- **🔄 Real-time Split Tracking**: Live payment status, automatic balance updates ✅
+- **📱 Split Bill Management**: Create, track, and pay split bills with notifications ✅
 
 </td>
 </tr>
@@ -130,6 +133,51 @@ graph TB
 ---
 
 ### 🆕 Latest Updates
+
+### 💸 Split Bill System (v1.6.0)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **Split Bill Creation** | Create bills with multiple participants, creator excluded from cost | ✅ Live |
+| **Real-time Payment Processing** | Actual Stellar blockchain transactions with instant balance updates | ✅ Live |
+| **Firebase Management** | Cloud-based split bill tracking with real-time status updates | ✅ Live |
+| **Smart Invitations** | Automatic participant discovery via @walletname system | ✅ Live |
+| **Interactive Payment Confirmations** | Detailed payment dialogs with transaction preview | ✅ Live |
+| **Live Status Tracking** | Real-time monitoring of who has paid and who hasn't | ✅ Live |
+| **Automatic Calculations** | Dynamic cost splitting excluding bill creator | ✅ Live |
+| **Notification System** | Unread split bill badges on home screen | ✅ Live |
+| **Background Data Loading** | All tabs pre-load data for instant access | ✅ Live |
+| **Payment History Integration** | Split bill payments appear in transaction history | ✅ Live |
+
+</div>
+
+#### 💸 Split Bill Flow
+
+```mermaid
+graph TB
+    A[Create Split Bill] --> B[Enter Amount & Description]
+    B --> C[Add Participants via @walletname]
+    C --> D[Automatic Cost Calculation] --> E[Bill Creation]
+    E --> F[Participants Receive Notifications]
+    
+    F --> G[Participant Payment Flow]
+    G --> H[Payment Confirmation Dialog]
+    H --> I[Stellar Blockchain Transaction]
+    I --> J[Real-time Status Update]
+    J --> K[Balance Refresh]
+    K --> L[Success Animation]
+    
+    subgraph "Split Bill Features"
+        M[Creator Cost Exclusion]
+        N[Real-time Payment Tracking]
+        O[Firebase Backend]
+        P[Unread Notifications]
+        Q[Background Data Loading]
+        R[Automatic Balance Updates]
+    end
+```
 
 ### 🎯 PIN Code Payment System (v1.5.0)
 
@@ -523,14 +571,17 @@ graph LR
 │   │   ├── wallet_model.dart           # Wallet data structure
 │   │   ├── multi_wallet_model.dart     # Multi-wallet management
 │   │   ├── transaction_model.dart      # Transaction data
-│   │   └── pin_code_model.dart         # PIN code data structure
+│   │   ├── pin_code_model.dart         # PIN code data structure
+│   │   └── split_bill_model.dart       # Split bill & participant data structures
 │   ├── 🔧 services/
 │   │   ├── stellar_service.dart        # Blockchain operations
 │   │   ├── storage_service.dart        # Secure data management
 │   │   ├── transaction_service.dart    # Payment processing
 │   │   ├── auth_service.dart           # Authentication & security
 │   │   ├── pin_code_service.dart       # PIN code management
-│   │   └── wallet_registry_service.dart # @Walletname system
+│   │   ├── wallet_registry_service.dart # @Walletname system
+│   │   ├── split_bill_service.dart     # Split bill management & payments
+│   │   └── firebase_cleanup_service.dart # Database maintenance utilities
 │   ├── 🎭 providers/
 │   │   └── wallet_provider.dart        # App state management
 │   ├── 📱 screens/
@@ -543,6 +594,8 @@ graph LR
 │   │   ├── qr_receive_screen.dart      # QR code generation for receiving
 │   │   ├── qr_scanner_screen.dart      # QR code scanner for payments
 │   │   ├── pin_receive_screen.dart     # PIN code generation for receiving
+│   │   ├── create_split_bill_screen.dart # Split bill creation with participants
+│   │   ├── split_bill_management_screen.dart # Split bill tracking & payment
 │   │   ├── settings_screen.dart        # App configuration
 │   │   ├── pin_setup_screen.dart       # PIN creation & management
 │   │   ├── pin_unlock_screen.dart      # PIN authentication
@@ -852,7 +905,10 @@ sequenceDiagram
 • Wallet management (rename, delete, export)<br>
 • PIN code payment system<br>
 • @Walletname system with Firebase<br>
-• QR code payments & receiving
+• QR code payments & receiving<br>
+• Complete Split Bill system with real payments<br>
+• Firebase-based split bill management<br>
+• Real-time payment tracking & notifications
 </td>
 <td>✅ Complete</td>
 </tr>

@@ -8,6 +8,7 @@ import '../services/wallet_registry_service.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/transfer_options_modal.dart';
+import '../services/split_bill_service.dart';
 import '../widgets/receive_options_modal.dart';
 import '../widgets/wallet_selector.dart';
 import '../widgets/wallet_name_setup_dialog.dart';
@@ -21,11 +22,28 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  int _unreadSplitBillCount = 0;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeWallet();
+    _loadUnreadSplitBills();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadUnreadSplitBills();
+    }
   }
 
   Future<void> _initializeWallet() async {
@@ -86,6 +104,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final walletProvider = Provider.of<WalletProvider>(context, listen: false);
     await walletProvider.refreshBalance();
     await walletProvider.loadTransactions();
+  }
+
+  Future<void> _loadUnreadSplitBills() async {
+    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+    if (walletProvider.activeWallet?.name != null) {
+      final count = await SplitBillService.getUnreadInvitationsCount(
+        walletProvider.activeWallet!.name,
+      );
+      if (mounted) {
+        setState(() {
+          _unreadSplitBillCount = count;
+        });
+      }
+    }
   }
 
   void _showTransferOptions() {
@@ -318,6 +350,54 @@ class _HomeScreenState extends State<HomeScreen> {
                     .slideY(begin: 0.3, duration: 500.ms)
                     .fadeIn(duration: 500.ms),
               ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Split Bill Management
+          Stack(
+            children: [
+              QuickActionCard(
+                icon: Icons.receipt_long,
+                title: 'My Split Bills',
+                subtitle: 'Manage & track split bills',
+                onTap: () async {
+                  await AppRoutes.push(context, AppRoutes.splitBillManagement);
+                  // Refresh unread count when returning from split bill management
+                  _loadUnreadSplitBills();
+                },
+                gradient: AppColors.accentGradient,
+              ).animate(delay: 1000.ms)
+                  .slideY(begin: 0.3, duration: 500.ms)
+                  .fadeIn(duration: 500.ms),
+              
+              // Badge for unread notifications
+              if (_unreadSplitBillCount > 0)
+                Positioned(
+                  right: 16,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 24,
+                      minHeight: 24,
+                    ),
+                    child: Text(
+                      _unreadSplitBillCount > 99 ? '99+' : _unreadSplitBillCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
             ],
           ),
         ],

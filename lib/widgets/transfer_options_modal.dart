@@ -86,6 +86,21 @@ class TransferOptionsModal extends StatelessWidget {
                 .slideX(begin: 0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
+            const SizedBox(height: 16),
+            
+            TransferOptionCard(
+              icon: Icons.receipt_long,
+              title: 'Split Bill',
+              subtitle: 'Split expenses with friends and family',
+              onTap: () {
+                Navigator.pop(context);
+                AppRoutes.push(context, AppRoutes.createSplitBill);
+              },
+              gradient: AppColors.accentGradient,
+            ).animate(delay: 500.ms)
+                .slideX(begin: -0.3, duration: 500.ms)
+                .fadeIn(duration: 500.ms),
+            
             const SizedBox(height: 24),
             
             // Close button

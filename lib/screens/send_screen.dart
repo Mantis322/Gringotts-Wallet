@@ -764,7 +764,7 @@ class _SendScreenState extends State<SendScreen> {
             labelText: 'Amount',
             hintText: '0.0000000',
             prefixIcon: Icon(
-              Icons.attach_money,
+              Icons.monetization_on,
               color: AppColors.textTertiary,
             ),
             suffixText: 'XLM',

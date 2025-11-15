@@ -8,6 +8,8 @@ import '../screens/settings_screen.dart';
 import '../screens/qr_receive_screen.dart';
 import '../screens/qr_scanner_screen.dart';
 import '../screens/pin_receive_screen.dart';
+import '../screens/create_split_bill_screen.dart';
+import '../screens/split_bill_management_screen.dart';
 
 /// Application Route Management
 /// Centralized navigation and route handling
@@ -24,6 +26,8 @@ class AppRoutes {
   static const String qrReceive = '/qr-receive';
   static const String qrScanner = '/qr-scanner';
   static const String pinReceive = '/pin-receive';
+  static const String createSplitBill = '/create-split-bill';
+  static const String splitBillManagement = '/split-bill-management';
   
   // Generate Routes
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -54,6 +58,12 @@ class AppRoutes {
       
       case pinReceive:
         return _createRoute(const PinReceiveScreen());
+      
+      case createSplitBill:
+        return _createRoute(const CreateSplitBillScreen());
+      
+      case splitBillManagement:
+        return _createRoute(const SplitBillManagementScreen());
       
       default:
         return _createRoute(
