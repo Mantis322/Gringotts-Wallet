@@ -166,7 +166,7 @@ graph TB
 ```mermaid
 graph TB
     A[Create Split Bill] --> B[Enter Amount & Description]
-    B --> C[Add Participants via @walletname]
+    B --> C[Add Participants via Walletname]
     C --> D[Automatic Cost Calculation] --> E[Bill Creation]
     E --> F[Participants Receive Notifications]
     
@@ -215,7 +215,7 @@ graph TB
 ```mermaid
 graph TB
     A[Create Group Wallet] --> B[Set Name & Description]
-    B --> C[Add Members (@usernames)] --> D[Set Target Amount & Date]
+    B --> C[Add Members via Usernames] --> D[Set Target Amount & Date]
     D --> E[Configure Multi-Sig Rules] --> F[Activate Stellar Account]
     F --> G[Group Wallet Ready]
     
