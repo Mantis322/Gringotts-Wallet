@@ -10,6 +10,9 @@ import '../screens/qr_scanner_screen.dart';
 import '../screens/pin_receive_screen.dart';
 import '../screens/create_split_bill_screen.dart';
 import '../screens/split_bill_management_screen.dart';
+import '../screens/create_group_wallet_screen.dart';
+import '../screens/group_wallet_dashboard_screen.dart';
+import '../screens/group_wallet_list_screen.dart';
 
 /// Application Route Management
 /// Centralized navigation and route handling
@@ -28,6 +31,9 @@ class AppRoutes {
   static const String pinReceive = '/pin-receive';
   static const String createSplitBill = '/create-split-bill';
   static const String splitBillManagement = '/split-bill-management';
+  static const String createGroupWallet = '/create-group-wallet';
+  static const String groupWalletDashboard = '/group-wallet-dashboard';
+  static const String groupWalletList = '/group-wallet-list';
   
   // Generate Routes
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -64,6 +70,26 @@ class AppRoutes {
       
       case splitBillManagement:
         return _createRoute(const SplitBillManagementScreen());
+      
+      case createGroupWallet:
+        return _createRoute(const CreateGroupWalletScreen());
+      
+      case groupWalletDashboard:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final groupWalletId = args?['groupWalletId'] as String?;
+        if (groupWalletId != null) {
+          return _createRoute(GroupWalletDashboardScreen(groupWalletId: groupWalletId));
+        }
+        return _createRoute(
+          const Scaffold(
+            body: Center(
+              child: Text('Group Wallet ID required'),
+            ),
+          ),
+        );
+      
+      case groupWalletList:
+        return _createRoute(const GroupWalletListScreen());
       
       default:
         return _createRoute(

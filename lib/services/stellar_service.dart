@@ -322,4 +322,61 @@ class StellarService {
   static void switchNetwork(bool useTestnet) {
     initialize(useTestnet: useTestnet);
   }
+
+  /// Get account information from Stellar network
+  static Future<AccountResponse> getAccountInfo(String publicKey) async {
+    try {
+      return await sdk.accounts.account(publicKey);
+    } catch (e) {
+      throw Exception('Account not found or network error: $e');
+    }
+  }
+
+  /// Create a new account on Stellar network
+  static Future<TransactionModel> createAccount({
+    required String sourceSecretKey,
+    required String destinationAddress,
+    required double startingBalance,
+    String memo = '',
+  }) async {
+    try {
+      final sourceKeyPair = KeyPair.fromSecretSeed(sourceSecretKey);
+      final sourceAccount = await sdk.accounts.account(sourceKeyPair.accountId);
+      
+      final transaction = TransactionBuilder(sourceAccount)
+          .addOperation(CreateAccountOperationBuilder(
+            destinationAddress,
+            startingBalance.toString(),
+          ).build());
+
+      if (memo.isNotEmpty) {
+        transaction.addMemo(Memo.text(memo));
+      }
+
+      final built = transaction.build();
+      built.sign(sourceKeyPair, currentNetwork.isTestnet ? Network.TESTNET : Network.PUBLIC);
+
+      final response = await sdk.submitTransaction(built);
+      
+      if (response.success) {
+        return TransactionModel(
+          id: _generateTransactionId(),
+          hash: response.hash!,
+          sourceAccount: sourceKeyPair.accountId,
+          destinationAccount: destinationAddress,
+          amount: startingBalance,
+          assetCode: 'XLM',
+          memo: memo,
+          createdAt: DateTime.now(),
+          status: TransactionStatus.success,
+          type: TransactionType.sent,
+          fee: 0.0001,
+        );
+      } else {
+        throw Exception('Transaction failed: ${response.resultXdr}');
+      }
+    } catch (e) {
+      throw Exception('Failed to create account: $e');
+    }
+  }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../app/theme/colors.dart';
 import '../providers/wallet_provider.dart';
 import '../services/split_bill_service.dart';
-import '../services/firebase_cleanup_service.dart';
+
 import '../services/stellar_service.dart';
 import '../services/wallet_registry_service.dart';
 import '../models/split_bill_model.dart';
@@ -113,67 +113,6 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
           ),
         ),
         centerTitle: true,
-        actions: [
-          // Debug button - sadece geliştirme için
-          if (kDebugMode)
-            PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert, color: AppColors.textPrimary),
-              onSelected: (value) async {
-                if (value == 'cleanup') {
-                  await FirebaseCleanupService.listAllSplitBillCollections();
-                  await FirebaseCleanupService.addParticipantWalletNamesToExistingDocs();
-                } else if (value == 'migrate') {
-                  await FirebaseCleanupService.migrateSplitRequestsToSplitBills();
-                } else if (value == 'fix_creator') {
-                  await FirebaseCleanupService.fixCreatorStatusInExistingBills();
-                } else if (value == 'clean_names') {
-                  await FirebaseCleanupService.cleanWalletNamesInExistingBills();
-                } else if (value == 'remove_creators') {
-                  await FirebaseCleanupService.removeCreatorFromParticipants();
-                } else if (value == 'full_cleanup') {
-                  // Tam temizlik
-                  await FirebaseCleanupService.removeCreatorFromParticipants();
-                  await FirebaseCleanupService.cleanWalletNamesInExistingBills();
-                  await FirebaseCleanupService.fixCreatorStatusInExistingBills();
-                  await FirebaseCleanupService.addParticipantWalletNamesToExistingDocs();
-                  // split_requests collection'ını temizle
-                  await FirebaseCleanupService.cleanupSplitRequestsCollection();
-                } else if (value == 'delete_requests') {
-                  await FirebaseCleanupService.cleanupSplitRequestsCollection();
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'full_cleanup',
-                  child: Text('🔧 Full Cleanup'),
-                ),
-                const PopupMenuItem(
-                  value: 'fix_creator',
-                  child: Text('Fix Creator Status'),
-                ),
-                const PopupMenuItem(
-                  value: 'clean_names',
-                  child: Text('Clean Wallet Names'),
-                ),
-                const PopupMenuItem(
-                  value: 'remove_creators',
-                  child: Text('🚫 Remove Creators from Participants'),
-                ),
-                const PopupMenuItem(
-                  value: 'cleanup',
-                  child: Text('Fix Existing Docs'),
-                ),
-                const PopupMenuItem(
-                  value: 'migrate',
-                  child: Text('Migrate split_requests'),
-                ),
-                const PopupMenuItem(
-                  value: 'delete_requests',
-                  child: Text('🗑️ Delete split_requests'),
-                ),
-              ],
-            ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primaryPurple,
@@ -192,8 +131,8 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
         child: TabBarView(
           controller: _tabController,
           children: [
-            KeepAlive(keepAlive: true, child: _buildCreatedBillsTab()),
-            KeepAlive(keepAlive: true, child: _buildInvitedBillsTab()),
+            _buildCreatedBillsTab(),
+            _buildInvitedBillsTab(),
           ],
         ),
       ),
@@ -360,24 +299,15 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
 
         // Split bills are already filtered by participantWalletNames query
         // But we need to exclude bills where user is the creator
-        debugPrint('Invited to - Total docs from query: ${splitBills.length}');
-        debugPrint('Active wallet name: $_activeWalletName');
-        
         final invitedSplitBills = splitBills.where((doc) {
           final splitBill = SplitBillModel.fromFirestore(doc);
           final isCreator = splitBill.creatorWalletName == _activeWalletName;
           // Use participantWalletNames array instead of participants list for consistency
           final isParticipant = splitBill.participantWalletNames?.contains(_activeWalletName) ?? false;
           
-          debugPrint('Doc ${doc.id}: creator=${splitBill.creatorWalletName}, isCreator=$isCreator, isParticipant=$isParticipant');
-          debugPrint('  participantWalletNames: ${splitBill.participantWalletNames}');
-          debugPrint('  participants count: ${splitBill.participants.length}');
-          
           // User should be a participant but not the creator
           return !isCreator && isParticipant;
         }).toList();
-        
-        debugPrint('Filtered invited bills: ${invitedSplitBills.length}');
 
         if (invitedSplitBills.isEmpty) {
           return Center(

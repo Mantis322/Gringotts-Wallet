@@ -355,49 +355,76 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
           const SizedBox(height: 16),
 
-          // Split Bill Management
-          Stack(
+          // Split Bill & Group Wallet Management
+          Row(
             children: [
-              QuickActionCard(
-                icon: Icons.receipt_long,
-                title: 'My Split Bills',
-                subtitle: 'Manage & track split bills',
-                onTap: () async {
-                  await AppRoutes.push(context, AppRoutes.splitBillManagement);
-                  // Refresh unread count when returning from split bill management
-                  _loadUnreadSplitBills();
-                },
-                gradient: AppColors.accentGradient,
-              ).animate(delay: 1000.ms)
-                  .slideY(begin: 0.3, duration: 500.ms)
-                  .fadeIn(duration: 500.ms),
-              
-              // Badge for unread notifications
-              if (_unreadSplitBillCount > 0)
-                Positioned(
-                  right: 16,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 24,
-                      minHeight: 24,
-                    ),
-                    child: Text(
-                      _unreadSplitBillCount > 99 ? '99+' : _unreadSplitBillCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+              Expanded(
+                child: Stack(
+                  children: [
+                    QuickActionCard(
+                      icon: Icons.receipt_long,
+                      title: 'My Split Bills',
+                      subtitle: 'Multiple options',
+                      onTap: () async {
+                        await AppRoutes.push(context, AppRoutes.splitBillManagement);
+                        // Refresh unread count when returning from split bill management
+                        _loadUnreadSplitBills();
+                      },
+                      gradient: AppColors.accentGradient,
+                    ).animate(delay: 1000.ms)
+                        .slideY(begin: 0.3, duration: 500.ms)
+                        .fadeIn(duration: 500.ms),
+                    
+                    // Badge for unread notifications
+                    if (_unreadSplitBillCount > 0)
+                      Positioned(
+                        right: 16,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 24,
+                            minHeight: 24,
+                          ),
+                          child: Text(
+                            _unreadSplitBillCount > 99 ? '99+' : _unreadSplitBillCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  ],
                 ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: QuickActionCard(
+                  icon: Icons.group_work,
+                  title: 'Group Wallets',
+                  subtitle: 'Multiple options',
+                  onTap: () {
+                    AppRoutes.push(context, AppRoutes.groupWalletList);
+                  },
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.purple.shade400,
+                      Colors.pink.shade400,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ).animate(delay: 1200.ms)
+                    .slideY(begin: 0.3, duration: 500.ms)
+                    .fadeIn(duration: 500.ms),
+              ),
             ],
           ),
         ],

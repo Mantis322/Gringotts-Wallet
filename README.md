@@ -62,6 +62,14 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 - **💸 Split Bill System**: Create bills, invite participants, real Stellar payments ✅
 - **🔄 Real-time Split Tracking**: Live payment status, automatic balance updates ✅
 - **📱 Split Bill Management**: Create, track, and pay split bills with notifications ✅
+- **👥 Group Wallet System**: Multi-signature shared wallets for collaborative savings ✅
+- **💰 Contribution Tracking**: Monitor individual contributions with real-time statistics ✅
+- **🔐 Multi-Signature Security**: Require multiple approvals for spending decisions ✅
+- **🎯 Target-Based Savings**: Set goals with progress tracking and deadline management ✅
+- **📊 Group Statistics**: Comprehensive member analytics and contribution insights ✅
+- **🛡️ Secure Group Management**: Automatic account activation with contribution tracking ✅
+- **⚡ Automatic Transfers**: Execute transfers when sufficient approvals are obtained ✅
+- **📈 Real-time Progress**: Live balance updates and contribution progress tracking ✅
 
 </td>
 </tr>
@@ -176,6 +184,57 @@ graph TB
         P[Unread Notifications]
         Q[Background Data Loading]
         R[Automatic Balance Updates]
+    end
+```
+
+### 👥 Group Wallet System (v1.7.0)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **Group Wallet Creation** | Multi-signature wallets with member management and target settings | ✅ Live |
+| **Contribution Tracking** | Real-time individual contribution monitoring with statistics | ✅ Live |
+| **Multi-Signature Security** | Configurable signature requirements for spending decisions | ✅ Live |
+| **Target-Based Savings** | Goal setting with progress tracking and deadline management | ✅ Live |
+| **Member Management** | Admin roles, member invitations, and contribution analytics | ✅ Live |
+| **Group Statistics Dashboard** | Comprehensive analytics and progress visualization | ✅ Live |
+| **Approval Workflow** | Multi-signature spending with member approval system | ✅ Live |
+| **Firebase Integration** | Cloud-based group wallet management and real-time updates | ✅ Live |
+| **Automatic Account Activation** | Seamless 1 XLM activation with contribution recording | ✅ Live |
+| **Creator Auto-Approval** | Request creators automatically count as approvers | ✅ Live |
+| **Automatic Transfer Execution** | Execute transactions when approvals are sufficient | ✅ Live |
+| **Real-time Balance Display** | Live Stellar network balance queries and updates | ✅ Live |
+| **Progress Calculation** | Accurate progress tracking including activation contributions | ✅ Live |
+| **Status Management** | Automatic status updates from pending to completed | ✅ Live |
+
+</div>
+
+#### 👥 Group Wallet Flow
+
+```mermaid
+graph TB
+    A[Create Group Wallet] --> B[Set Name & Description]
+    B --> C[Add Members (@usernames)] --> D[Set Target Amount & Date]
+    D --> E[Configure Multi-Sig Rules] --> F[Activate Stellar Account]
+    F --> G[Group Wallet Ready]
+    
+    G --> H[Group Dashboard]
+    H --> I[Contribute to Group] --> J[Real-time Balance Update]
+    H --> K[View Members & Stats] --> L[Member Contributions & Progress]
+    H --> M[Create Spending Request] --> N[Multi-Member Approval Process]
+    N --> O[Sufficient Approvals] --> P[Automatic Transaction Execution]
+    P --> Q[Status Update & Notification]
+    
+    subgraph "Group Wallet Features"
+        R[Secure Account Activation]
+        S[Real-time Contribution Tracking]
+        T[Firebase Group Management]
+        U[Progress Visualization]
+        V[Member Role Management]
+        W[Automatic Spending Execution]
+        X[Creator Auto-Approval Logic]
+        Y[Real-time Status Updates]
     end
 ```
 
@@ -572,7 +631,9 @@ graph LR
 │   │   ├── multi_wallet_model.dart     # Multi-wallet management
 │   │   ├── transaction_model.dart      # Transaction data
 │   │   ├── pin_code_model.dart         # PIN code data structure
-│   │   └── split_bill_model.dart       # Split bill & participant data structures
+│   │   ├── split_bill_model.dart       # Split bill & participant data structures
+│   │   ├── group_wallet_model.dart     # Group wallet & member models
+│   │   └── spending_request_model.dart # Group spending request data structures
 │   ├── 🔧 services/
 │   │   ├── stellar_service.dart        # Blockchain operations
 │   │   ├── storage_service.dart        # Secure data management
@@ -581,6 +642,8 @@ graph LR
 │   │   ├── pin_code_service.dart       # PIN code management
 │   │   ├── wallet_registry_service.dart # @Walletname system
 │   │   ├── split_bill_service.dart     # Split bill management & payments
+│   │   ├── group_wallet_service.dart   # Group wallet management & creation
+│   │   ├── spending_request_service.dart # Multi-signature spending & approval system
 │   │   └── firebase_cleanup_service.dart # Database maintenance utilities
 │   ├── 🎭 providers/
 │   │   └── wallet_provider.dart        # App state management
@@ -596,6 +659,9 @@ graph LR
 │   │   ├── pin_receive_screen.dart     # PIN code generation for receiving
 │   │   ├── create_split_bill_screen.dart # Split bill creation with participants
 │   │   ├── split_bill_management_screen.dart # Split bill tracking & payment
+│   │   ├── create_group_wallet_screen.dart # Group wallet creation & setup
+│   │   ├── group_wallet_dashboard_screen.dart # Group management & statistics
+│   │   ├── group_wallet_list_screen.dart # Group wallet overview & navigation
 │   │   ├── settings_screen.dart        # App configuration
 │   │   ├── pin_setup_screen.dart       # PIN creation & management
 │   │   ├── pin_unlock_screen.dart      # PIN authentication
@@ -659,6 +725,9 @@ graph LR
 | **🔒 Biometric Auth** | Fingerprint & Face ID integration | ✅ Implemented |
 | **📱 PIN Protection** | 6-digit PIN with secure hashing | ✅ Implemented |
 | **🛡️ App Lock** | Authentication required on launch | ✅ Implemented |
+| **👥 Group Wallet Security** | Secure multi-signature implementation with device-only key storage | ✅ Implemented |
+| **🔐 Multi-Sig Architecture** | Distributed signature collection with automatic execution | ✅ Implemented |
+| **🛡️ Local Key Management** | All private keys remain exclusively on user devices | ✅ Implemented |
 | **🎯 App Attestation** | Runtime application verification | 🔄 Planned |
 
 ---
@@ -908,7 +977,13 @@ sequenceDiagram
 • QR code payments & receiving<br>
 • Complete Split Bill system with real payments<br>
 • Firebase-based split bill management<br>
-• Real-time payment tracking & notifications
+• Group Wallet system with multi-signature support<br>
+• Collaborative savings with contribution tracking<br>
+• Real-time payment tracking & notifications<br>
+• Multi-signature spending request system<br>
+• Automatic transaction execution<br>
+• Device-only private key management<br>
+• Real-time group analytics & progress tracking
 </td>
 <td>✅ Complete</td>
 </tr>
@@ -1030,37 +1105,39 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Mantis322/gringotts-wallet/discussions)
 - 🔒 **Security Issues**: security@gringotts-wallet.com
 
-### 🆕 Latest Release Highlights (v1.5.0)
+### 🆕 Latest Release Highlights (v1.7.0)
 
 <div align="center">
 
 | 🎯 **Feature Category** | 🚀 **New Capabilities** | 📊 **Impact** |
 |-------------------------|-------------------------|---------------|
-| **🎯 PIN Code Payments** | 6-digit temporary codes with Firebase backend | Revolutionary payment simplicity |
-| **⏱️ Real-time PIN Status** | Live monitoring with success animations | Enhanced user experience |
-| **🌐 @Walletname System** | Send to @username instead of long addresses | User-friendly transfers |
-| **� Firebase Integration** | Cloud-based wallet registry and PIN management | Scalable backend infrastructure |
-| **� Success Animations** | Beautiful animations with auto-redirect | Delightful user feedback |
-| **🔄 Auto Balance Updates** | Real-time balance refresh after transactions | Always accurate data |
-| **📱 Enhanced Send Screen** | Multiple send methods with smart validation | Flexible payment options |
-| **🛡️ Smart Confirmations** | Auto-fill transactions from PIN validation | Secure and convenient |
+| **👥 Group Wallet System** | Complete multi-signature collaborative savings platform | Revolutionary group financial management |
+| **🔐 Multi-Signature Security** | Secure multi-approval spending with automatic execution | Enterprise-grade security for group funds |
+| **💰 Contribution Tracking** | Real-time individual contribution monitoring with analytics | Transparent group financial transparency |
+| **🎯 Target-Based Savings** | Goal setting with progress tracking and deadline management | Motivated collaborative saving |
+| **⚡ Automatic Transfers** | Execute transactions when sufficient approvals obtained | Seamless group spending experience |
+| **📊 Real-time Analytics** | Live balance updates and comprehensive group statistics | Data-driven group insights |
+| **🛡️ Secure Architecture** | Device-only key storage with distributed approval system | Maximum security with convenience |
+| **📱 Intuitive Dashboard** | 6-tab interface with pending/completed request management | Professional group management UX |
 
 </div>
 
-#### 🎯 What's New in Latest Update
+#### 🎯 What's New in Latest Update (v1.7.0)
 
-- **💫 Complete Transaction Interface**: Both "Make a Payment" and "Receive" now offer multiple options
-- **🔄 Unified Design Language**: Consistent modal design across all Quick Actions
-- **📱 QR Code Payment System**: Full QR code scanner with camera integration and payment confirmation
-- **📷 QR Code Receive System**: Generate payment QR codes with wallet selection and amount input
-- **🎯 Enhanced Payment Flow**: Real transaction validation and error handling
-- **📝 Smart Naming**: Wallets display as "Wallet 1", "Wallet 2" for easy identification
-- **⚙️ Management Hub**: Access all wallet operations from Settings → Manage Wallets
-- **🔐 Secure Export**: Export secret keys with built-in security warnings
-- **🎨 Enhanced UI**: Beautiful bottom sheets with visual indicators
-- **🛡️ Protection**: Cannot delete active wallets, preventing accidents
-- **📲 Mobile Scanner Integration**: Advanced QR scanner with custom overlay shapes and torch control
-- **🔄 Transaction History Updates**: Real-time balance and history refresh after successful payments
+- **👥 Complete Group Wallet System**: Full multi-signature collaborative savings platform
+- **🔐 Multi-Signature Implementation**: Secure approval system with configurable signature requirements
+- **💰 Real-time Contribution Tracking**: Individual member contribution monitoring with statistics
+- **🎯 Target-Based Group Savings**: Set collective goals with progress visualization
+- **⚡ Automatic Transaction Execution**: Seamless transfers when approval threshold is met
+- **📊 Comprehensive Group Dashboard**: 6-tab interface for complete group management
+- **🛡️ Secure Account Activation**: Automatic 1 XLM activation with contribution recording
+- **📈 Live Balance Updates**: Real-time Stellar network balance queries and display
+- **🎯 Creator Auto-Approval Logic**: Request creators automatically count as approvers
+- **📱 Enhanced Spending Workflow**: Create, approve, and track spending requests seamlessly
+- **🔄 Status Management**: Automatic updates from pending to completed transactions
+- **📊 Group Analytics**: Member contribution insights and progress statistics
+- **🛡️ Device-Only Key Storage**: All private keys remain exclusively on user devices
+- **⚙️ Production-Ready**: Comprehensive error handling and clean user interface
 
 ---
 
