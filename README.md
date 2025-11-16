@@ -1026,21 +1026,6 @@ sequenceDiagram
 
 ---
 
-## 🏆 Awards & Recognition
-
-<div align="center">
-
-| 🏅 Achievement | 📅 Date | 🏛️ Organization |
-|----------------|---------|-----------------|
-| 🥇 **Best Mobile Wallet Design** | 2025 | Flutter Awards |
-| 🌟 **Innovation in Blockchain UX** | 2025 | Stellar Development Foundation |
-| 🎯 **Security Excellence Award** | 2025 | Mobile Security Alliance |
-| 🚀 **Rising Star Project** | 2025 | GitHub Community |
-
-</div>
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions from the magical developer community! 
@@ -1097,13 +1082,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 </div>
 
-### 🌟 Community & Support
 
-- 📚 **Documentation**: [docs.gringotts-wallet.com](https://docs.gringotts-wallet.com)
-- 💬 **Discord Community**: [Join our magical community](https://discord.gg/gringotts)
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Mantis322/gringotts-wallet/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Mantis322/gringotts-wallet/discussions)
-- 🔒 **Security Issues**: security@gringotts-wallet.com
 
 ### 🆕 Latest Release Highlights (v1.7.0)
 
