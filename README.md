@@ -1,12 +1,12 @@
-# 🏦 Gringotts Wallet
+# 🏦 Stellar Wallet
 
 <div align="center">
 
-![Gringotts Wallet Banner](assets\images\Banner.png)
+![Stellar Wallet Banner](assets\images\Banner.png)
 
-**Your magical vault for digital treasures**
+**Your premium Stellar blockchain wallet**
 
-*"Gringotts: The safest place on earth for anything you want to keep safe — except perhaps Hogwarts."*
+*"The most secure and elegant way to manage your digital treasures on the Stellar network."*
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.35.7-02569B?style=for-the-badge&logo=flutter)](https://flutter.dev)
 [![Stellar](https://img.shields.io/badge/Stellar-Network-7B3F98?style=for-the-badge&logo=stellar)](https://stellar.org)
@@ -19,10 +19,10 @@
 
 ## 🌟 Project Overview
 
-**Gringotts Wallet** is a premium Stellar blockchain wallet application built with Flutter, inspired by the legendary Gringotts Wizarding Bank from the Harry Potter universe. This production-ready mobile application combines cutting-edge blockchain technology with magical user experience design, creating the most secure and elegant way to manage your digital treasures.
+**Stellar Wallet** is a premium Stellar blockchain wallet application built with Flutter. This production-ready mobile application combines cutting-edge blockchain technology with premium user experience design, creating the most secure and elegant way to manage your digital treasures on the Stellar network.
 
 ### 🎯 Mission Statement
-To provide the most secure, user-friendly, and magically intuitive Stellar wallet experience, ensuring that your digital assets are protected with the same level of security as the treasures in Gringotts vaults.
+To provide the most secure, user-friendly, and intuitive Stellar wallet experience, ensuring that your digital assets are protected with enterprise-grade security while maintaining exceptional usability and innovative features like WhisperPay proximity payments.
 
 ---
 
@@ -59,6 +59,9 @@ To provide the most secure, user-friendly, and magically intuitive Stellar walle
 - **⚙️ Advanced Wallet Management**: Rename, delete, export features ✅
 - **🎯 PIN Code Payments**: Generate temporary codes for receiving ✅
 - **🌐 @Walletname Transfers**: Send to @username with Firebase registry ✅
+- **📡 WhisperPay System**: Bluetooth Low Energy proximity payments with PIN codes ✅
+- **🔐 BLE Data Exchange**: Secure payment discovery and wallet address transmission ✅
+- **⚡ Automatic Success Detection**: Real-time balance monitoring with smart completion ✅
 - **💸 Split Bill System**: Create bills, invite participants, real Stellar payments ✅
 - **🔄 Real-time Split Tracking**: Live payment status, automatic balance updates ✅
 - **📱 Split Bill Management**: Create, track, and pay split bills with notifications ✅
@@ -141,6 +144,51 @@ graph TB
 ---
 
 ### 🆕 Latest Updates
+
+### 📡 WhisperPay - Proximity Payment System (v1.8.0)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **📡 Bluetooth Low Energy (BLE) Payments** | Proximity-based payments using BLE advertising and scanning | ✅ Live |
+| **🔐 PIN Code Integration** | Secure 6-digit PIN codes for payment data exchange via Firebase | ✅ Live |
+| **🏦 Multi-Wallet Support** | Send to specific wallet addresses through BLE discovery | ✅ Live |
+| **⚡ Automatic Success Detection** | Real-time balance monitoring with automatic completion detection | ✅ Live |
+| **🤝 Self-Transfer Protection** | Intelligent prevention of payments to your own wallets | ✅ Live |
+| **📱 Android Compatibility** | Full Android 8.1+ support with location service management | ✅ Live |
+| **🎨 Premium Animations** | Beautiful scanning animations with gradient effects | ✅ Live |
+| **🔄 Real-time Status Updates** | Live payment progress with success animations | ✅ Live |
+| **🛡️ Secure Data Exchange** | Encrypted BLE data packets with session validation | ✅ Live |
+| **📊 Smart Payment Flow** | Automatic amount validation and wallet address resolution | ✅ Live |
+
+</div>
+
+#### 📡 WhisperPay Flow
+
+```mermaid
+graph TB
+    A[WhisperPay Send] --> B[Start BLE Scanning] --> C[Discover Nearby Sessions]
+    C --> D[Select Payment Session] --> E[Validate PIN Code via Firebase]
+    E --> F[Retrieve Payment Details] --> G[Confirm Transfer Amount]
+    G --> H[Execute Stellar Transaction] --> I[Success Animation & Auto-redirect]
+    
+    J[WhisperPay Receive] --> K[Select Target Wallet] --> L[Generate PIN Code Session]
+    L --> M[Start BLE Advertising] --> N[Monitor for Incoming Payments]
+    N --> O[Real-time Balance Monitoring] --> P[Automatic Success Detection]
+    P --> Q[Show Success Animation] --> R[Auto-redirect to Home]
+    
+    subgraph "WhisperPay Features"
+        S[BLE Service Data Exchange]
+        T[Firebase PIN Code Backend]
+        U[Multi-Wallet Address Support]
+        V[Android Location Service Handling]
+        W[Self-Transfer Prevention]
+        X[Automatic Success Detection]
+        Y[Premium UI Animations]
+        Z[Real-time Balance Updates]
+    end
+```
 
 ### 💸 Split Bill System (v1.6.0)
 
@@ -600,8 +648,10 @@ graph LR
 | **🌐 Blockchain** | Stellar SDK | 1.9.4 | Blockchain integration |
 | **� Firebase** | Firebase Core | 3.15.2 | Backend services |
 | **☁️ Firestore** | Cloud Firestore | 5.6.12 | PIN codes & wallet registry |
-| **�📷 QR Scanner** | Mobile Scanner | 5.0.0 | QR code scanning |
+| **📷 QR Scanner** | Mobile Scanner | 5.0.0 | QR code scanning |
 | **🔢 QR Generator** | QR Flutter | 4.1.0 | QR code generation |
+| **📡 BLE Peripheral** | Flutter BLE Peripheral | 2.0.0 | BLE advertising for WhisperPay |
+| **📲 BLE Central** | Flutter Blue Plus | 1.36.8 | BLE scanning for WhisperPay |
 | **🔐 Security** | Flutter Secure Storage | 9.2.2 | Encrypted key storage |
 | **🔒 Authentication** | Local Auth | 2.3.0 | Biometric authentication |
 | **🛡️ Encryption** | Crypto | 3.0.5 | PIN hashing & encryption |
@@ -644,6 +694,7 @@ graph LR
 │   │   ├── split_bill_service.dart     # Split bill management & payments
 │   │   ├── group_wallet_service.dart   # Group wallet management & creation
 │   │   ├── spending_request_service.dart # Multi-signature spending & approval system
+│   │   ├── whisper_pay_service.dart   # BLE proximity payment management
 │   │   └── firebase_cleanup_service.dart # Database maintenance utilities
 │   ├── 🎭 providers/
 │   │   └── wallet_provider.dart        # App state management
@@ -662,6 +713,8 @@ graph LR
 │   │   ├── create_group_wallet_screen.dart # Group wallet creation & setup
 │   │   ├── group_wallet_dashboard_screen.dart # Group management & statistics
 │   │   ├── group_wallet_list_screen.dart # Group wallet overview & navigation
+│   │   ├── whisper_pay_send_screen.dart # WhisperPay BLE scanning & payments
+│   │   ├── whisper_pay_receive_screen.dart # WhisperPay BLE advertising & receiving
 │   │   ├── settings_screen.dart        # App configuration
 │   │   ├── pin_setup_screen.dart       # PIN creation & management
 │   │   ├── pin_unlock_screen.dart      # PIN authentication
@@ -673,6 +726,7 @@ graph LR
 │   │   ├── transaction_card.dart       # Transaction items
 │   │   ├── payment_options_modal.dart  # Payment method selector
 │   │   ├── receive_options_modal.dart  # Receive method selector
+│   │   ├── transfer_options_modal.dart # Transfer method selector (includes WhisperPay)
 │   │   └── auth_guard.dart             # Authentication wrapper
 │   └── 🚀 main.dart                    # Application entry point
 ├── 🤖 android/                         # Android platform code
@@ -1084,52 +1138,52 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 
 
-### 🆕 Latest Release Highlights (v1.7.0)
+### 🆕 Latest Release Highlights (v1.8.0)
 
 <div align="center">
 
 | 🎯 **Feature Category** | 🚀 **New Capabilities** | 📊 **Impact** |
 |-------------------------|-------------------------|---------------|
-| **👥 Group Wallet System** | Complete multi-signature collaborative savings platform | Revolutionary group financial management |
-| **🔐 Multi-Signature Security** | Secure multi-approval spending with automatic execution | Enterprise-grade security for group funds |
-| **💰 Contribution Tracking** | Real-time individual contribution monitoring with analytics | Transparent group financial transparency |
-| **🎯 Target-Based Savings** | Goal setting with progress tracking and deadline management | Motivated collaborative saving |
-| **⚡ Automatic Transfers** | Execute transactions when sufficient approvals obtained | Seamless group spending experience |
-| **📊 Real-time Analytics** | Live balance updates and comprehensive group statistics | Data-driven group insights |
-| **🛡️ Secure Architecture** | Device-only key storage with distributed approval system | Maximum security with convenience |
-| **📱 Intuitive Dashboard** | 6-tab interface with pending/completed request management | Professional group management UX |
+| **📡 WhisperPay System** | Complete Bluetooth Low Energy proximity payment platform | Revolutionary contactless payments |
+| **🔐 BLE Security** | PIN code integration with encrypted BLE data exchange | Secure proximity payments with Firebase backend |
+| **🏦 Multi-Wallet BLE** | Send payments to specific wallet addresses via BLE discovery | Targeted recipient selection through proximity |
+| **⚡ Smart Detection** | Real-time balance monitoring with automatic success detection | Seamless payment completion experience |
+| **📱 Premium UX** | Beautiful scanning animations with gradient effects | Professional proximity payment interface |
+| **🛡️ Android Compatibility** | Full Android 8.1+ support with location service management | Universal Android device support |
+| **🤝 Safety Features** | Intelligent self-transfer prevention and validation | Protected against accidental payments |
+| **🔄 Real-time Updates** | Live payment progress with instant success animations | Immediate feedback and completion detection |
 
 </div>
 
-#### 🎯 What's New in Latest Update (v1.7.0)
+#### 🎯 What's New in Latest Update (v1.8.0)
 
-- **👥 Complete Group Wallet System**: Full multi-signature collaborative savings platform
-- **🔐 Multi-Signature Implementation**: Secure approval system with configurable signature requirements
-- **💰 Real-time Contribution Tracking**: Individual member contribution monitoring with statistics
-- **🎯 Target-Based Group Savings**: Set collective goals with progress visualization
-- **⚡ Automatic Transaction Execution**: Seamless transfers when approval threshold is met
-- **📊 Comprehensive Group Dashboard**: 6-tab interface for complete group management
-- **🛡️ Secure Account Activation**: Automatic 1 XLM activation with contribution recording
-- **📈 Live Balance Updates**: Real-time Stellar network balance queries and display
-- **🎯 Creator Auto-Approval Logic**: Request creators automatically count as approvers
-- **📱 Enhanced Spending Workflow**: Create, approve, and track spending requests seamlessly
-- **🔄 Status Management**: Automatic updates from pending to completed transactions
-- **📊 Group Analytics**: Member contribution insights and progress statistics
-- **🛡️ Device-Only Key Storage**: All private keys remain exclusively on user devices
-- **⚙️ Production-Ready**: Comprehensive error handling and clean user interface
+- **📡 Complete WhisperPay System**: Full Bluetooth Low Energy proximity payment platform
+- **🔐 BLE Data Exchange**: Secure service data advertising with 4-byte session identification
+- **🔑 PIN Code Integration**: 6-digit PIN codes for secure payment data exchange via Firebase
+- **🏦 Multi-Wallet Support**: Target specific wallet addresses through BLE discovery process  
+- **⚡ Automatic Success Detection**: Real-time balance monitoring with automatic completion detection
+- **🤝 Self-Transfer Prevention**: Intelligent protection against payments to your own wallets
+- **📱 Android 8.1+ Compatibility**: Full location service management for BLE scanning requirements
+- **🎨 Premium Animations**: Beautiful scanning animations with vivid gradient effects matching app theme
+- **🔄 Real-time Progress**: Live payment status updates with instant success animations and auto-redirect
+- **🛡️ Secure Architecture**: Encrypted BLE packets with session validation and Firebase backend
+- **📊 Smart Payment Flow**: Automatic amount validation and wallet address resolution
+- **⚙️ Production-Ready**: Comprehensive error handling with location service dialogs and user guidance
+- **🎯 Enhanced UX**: WhisperPay positioned as primary payment option in all payment modals
+- **🔄 Seamless Integration**: Perfect integration with existing PIN code and @walletname systems
 
 ---
 
 <div align="center">
 
-### 🪄 *"Gringotts: The safest place on earth for anything you want to keep safe — except perhaps Hogwarts."*
+### ✨ *"The future of Stellar payments is here - secure, elegant, and magical."*
 
-**Made with ❤️ and ⚡ by the Gringotts Development Team**
+**Made with ❤️ and ⚡ by the Stellar Wallet Development Team**
 
 ---
 
-*May your digital treasures be forever secure in the deepest vaults of Gringotts.*
+*Experience the magic of proximity payments with WhisperPay - where your Stellar transactions happen seamlessly through the air.*
 
-![Footer](https://via.placeholder.com/800x100/1A1B3A/FFFFFF?text=🏦+Secure+Your+Digital+Treasures+with+Gringotts+Wallet+🪄)
+![Footer](https://via.placeholder.com/800x100/1A1B3A/FFFFFF?text=🏦+Secure+Your+Digital+Treasures+with+Stellar+Wallet+📡)
 
 </div>

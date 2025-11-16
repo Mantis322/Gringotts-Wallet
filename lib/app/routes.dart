@@ -13,6 +13,8 @@ import '../screens/split_bill_management_screen.dart';
 import '../screens/create_group_wallet_screen.dart';
 import '../screens/group_wallet_dashboard_screen.dart';
 import '../screens/group_wallet_list_screen.dart';
+import '../screens/whisper_pay_receive_screen.dart';
+import '../screens/whisper_pay_send_screen.dart';
 
 /// Application Route Management
 /// Centralized navigation and route handling
@@ -34,6 +36,8 @@ class AppRoutes {
   static const String createGroupWallet = '/create-group-wallet';
   static const String groupWalletDashboard = '/group-wallet-dashboard';
   static const String groupWalletList = '/group-wallet-list';
+  static const String whisperPayReceive = '/whisper-pay-receive';
+  static const String whisperPaySend = '/whisper-pay-send';
   
   // Generate Routes
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -90,6 +94,12 @@ class AppRoutes {
       
       case groupWalletList:
         return _createRoute(const GroupWalletListScreen());
+      
+      case whisperPayReceive:
+        return _createRoute(const WhisperPayReceiveScreen());
+      
+      case whisperPaySend:
+        return _createRoute(const WhisperPaySendScreen());
       
       default:
         return _createRoute(

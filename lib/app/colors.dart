@@ -46,6 +46,8 @@ class AppColors {
   
   // Additional colors for compatibility
   static const Color accentGold = Color(0xFFFFD700);
+  static const Color secondary = Color(0xFF2196F3); // Blue secondary
+  static const Color accent = Color(0xFFFFD700); // Gold accent
   
   // Gradient colors
   static const LinearGradient primaryGradient = LinearGradient(

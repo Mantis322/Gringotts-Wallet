@@ -59,6 +59,25 @@ class PaymentOptionsModal extends StatelessWidget {
             
             // Payment Options
             PaymentOptionCard(
+              icon: Icons.bluetooth,
+              title: 'WhisperPay',
+              subtitle: 'Proximity payment via Bluetooth',
+              onTap: () {
+                Navigator.pop(context);
+                AppRoutes.push(context, AppRoutes.whisperPaySend);
+              },
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.secondaryBlue, AppColors.accentGold],
+              ),
+            ).animate(delay: 300.ms)
+                .slideX(begin: -0.3, duration: 500.ms)
+                .fadeIn(duration: 500.ms),
+            
+            const SizedBox(height: 16),
+            
+            PaymentOptionCard(
               icon: Icons.qr_code_scanner,
               title: 'Make a Payment with QR Code',
               subtitle: 'Scan recipient\'s QR code',
@@ -67,7 +86,7 @@ class PaymentOptionsModal extends StatelessWidget {
                 AppRoutes.push(context, AppRoutes.qrScanner);
               },
               gradient: AppColors.accentGradient,
-            ).animate(delay: 300.ms)
+            ).animate(delay: 400.ms)
                 .slideX(begin: -0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
@@ -82,7 +101,7 @@ class PaymentOptionsModal extends StatelessWidget {
                 AppRoutes.push(context, AppRoutes.send);
               },
               gradient: AppColors.primaryGradient,
-            ).animate(delay: 400.ms)
+            ).animate(delay: 500.ms)
                 .slideX(begin: 0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             

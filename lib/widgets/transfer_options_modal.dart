@@ -15,9 +15,10 @@ class TransferOptionsModal extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             // Handle bar
             Container(
               width: 40,
@@ -30,7 +31,7 @@ class TransferOptionsModal extends StatelessWidget {
                 .slideY(begin: -0.3, duration: 300.ms)
                 .fadeIn(duration: 300.ms),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             
             // Title
             Text(
@@ -55,9 +56,28 @@ class TransferOptionsModal extends StatelessWidget {
                 .slideY(begin: 0.3, duration: 400.ms)
                 .fadeIn(duration: 400.ms),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             
             // Transfer Options
+            TransferOptionCard(
+              icon: Icons.bluetooth,
+              title: 'WhisperPay',
+              subtitle: 'Send via proximity payment (BLE)',
+              onTap: () {
+                Navigator.pop(context);
+                AppRoutes.push(context, AppRoutes.whisperPaySend);
+              },
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.secondaryBlue, AppColors.accentGold],
+              ),
+            ).animate(delay: 300.ms)
+                .slideX(begin: -0.3, duration: 500.ms)
+                .fadeIn(duration: 500.ms),
+            
+            const SizedBox(height: 16),
+            
             TransferOptionCard(
               icon: Icons.qr_code_scanner,
               title: 'Send with QR Code',
@@ -67,7 +87,7 @@ class TransferOptionsModal extends StatelessWidget {
                 AppRoutes.push(context, AppRoutes.qrScanner);
               },
               gradient: AppColors.accentGradient,
-            ).animate(delay: 300.ms)
+            ).animate(delay: 400.ms)
                 .slideX(begin: -0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
@@ -82,7 +102,7 @@ class TransferOptionsModal extends StatelessWidget {
                 AppRoutes.push(context, AppRoutes.send);
               },
               gradient: AppColors.primaryGradient,
-            ).animate(delay: 400.ms)
+            ).animate(delay: 500.ms)
                 .slideX(begin: 0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
@@ -97,11 +117,11 @@ class TransferOptionsModal extends StatelessWidget {
                 AppRoutes.push(context, AppRoutes.createSplitBill);
               },
               gradient: AppColors.accentGradient,
-            ).animate(delay: 500.ms)
+            ).animate(delay: 600.ms)
                 .slideX(begin: -0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             
             // Close button
             TextButton(
@@ -112,10 +132,11 @@ class TransferOptionsModal extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
-            ).animate(delay: 600.ms)
+            ).animate(delay: 700.ms)
                 .slideY(begin: 0.3, duration: 400.ms)
                 .fadeIn(duration: 400.ms),
           ],
+          ),
         ),
       ),
     );

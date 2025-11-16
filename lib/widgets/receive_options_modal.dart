@@ -59,6 +59,25 @@ class ReceiveOptionsModal extends StatelessWidget {
             
             // Receive Options
             ReceiveOptionCard(
+              icon: Icons.bluetooth,
+              title: 'WhisperPay Receive',
+              subtitle: 'Activate proximity payment mode',
+              onTap: () {
+                Navigator.pop(context);
+                AppRoutes.push(context, AppRoutes.whisperPayReceive);
+              },
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.secondaryBlue, AppColors.accentGold],
+              ),
+            ).animate(delay: 300.ms)
+                .slideX(begin: -0.3, duration: 500.ms)
+                .fadeIn(duration: 500.ms),
+            
+            const SizedBox(height: 16),
+            
+            ReceiveOptionCard(
               icon: Icons.qr_code_scanner,
               title: 'Receive with QR Code',
               subtitle: 'Show your QR code to sender',
@@ -67,7 +86,7 @@ class ReceiveOptionsModal extends StatelessWidget {
                 AppRoutes.push(context, AppRoutes.qrReceive);
               },
               gradient: AppColors.accentGradient,
-            ).animate(delay: 300.ms)
+            ).animate(delay: 400.ms)
                 .slideX(begin: -0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
@@ -82,7 +101,7 @@ class ReceiveOptionsModal extends StatelessWidget {
                 AppRoutes.push(context, AppRoutes.pinReceive);
               },
               gradient: AppColors.primaryGradient,
-            ).animate(delay: 400.ms)
+            ).animate(delay: 500.ms)
                 .slideX(begin: -0.3, duration: 500.ms)
                 .fadeIn(duration: 500.ms),
             
