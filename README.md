@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Stellar Wallet Banner](assets\images\Banner.png)
+![Stellar Wallet Banner](https://github.com/Mantis322/Gringotts-Wallet/blob/main/assets/images/Banner.png)
 
 **Your premium Stellar blockchain wallet**
 
@@ -1139,16 +1139,10 @@ We welcome contributions from the magical developer community!
 <sub>Flutter & Blockchain Expert</sub>
 </td>
 <td align="center">
-<img src="https://via.placeholder.com/100x100/6366F1/FFFFFF?text=GM" width="100px;" alt="Goblin Manager"/><br>
+<img src="https://pm1.aminoapps.com/6087/1f641e4b1a69970f3554b46e8d2dc48ed5c5b6fc_hq.jpg" width="100px;" alt="Goblin Manager"/><br>
 <sub><b>Griphook</b></sub><br>
 <sub>Lead Vault Keeper</sub><br>
 <sub>Security Consultant</sub>
-</td>
-<td align="center">
-<img src="https://via.placeholder.com/100x100/FBBF24/000000?text=SA" width="100px;" alt="Security Architect"/><br>
-<sub><b>Ragnok</b></sub><br>
-<sub>Security Architect</sub><br>
-<sub>Cryptography Expert</sub>
 </td>
 </tr>
 </table>
@@ -1160,17 +1154,6 @@ We welcome contributions from the magical developer community!
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
-
-## 🔗 Links & Resources
-
-<div align="center">
-
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/Mantis322/gringotts-wallet)
-[![Documentation](https://img.shields.io/badge/Docs-GitBook-3884FF?style=for-the-badge&logo=gitbook)](https://docs.gringotts-wallet.com)
-[![Website](https://img.shields.io/badge/Website-gringotts--wallet.com-FF6B6B?style=for-the-badge&logo=safari)](https://gringotts-wallet.com)
-[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/gringotts)
-
-</div>
 
 
 
@@ -1227,12 +1210,10 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ### ✨ *"The future of Stellar payments is here - secure, elegant, and magical."*
 
-**Made with ❤️ and ⚡ by the Stellar Wallet Development Team**
+**Made with ❤️ and ⚡ by the Gringotts Wallet Development Team**
 
 ---
 
 *Experience the magic of proximity payments with WhisperPay - where your Stellar transactions happen seamlessly through the air.*
-
-![Footer](https://via.placeholder.com/800x100/1A1B3A/FFFFFF?text=🏦+Secure+Your+Digital+Treasures+with+Stellar+Wallet+📡)
 
 </div>
