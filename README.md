@@ -175,7 +175,7 @@ graph TB
     C --> E[Process Account Creation Operations] --> D
     C --> F[Process Path Payment Operations] --> D
     D --> G[Cache Memos by Transaction Hash] --> H[Filter Duplicate Transactions]
-    H --> I[Sort by Date (Newest First)] --> J[Display in Transaction List]
+    H --> I[Sort by Date Newest First] --> J[Display in Transaction List]
     J --> K[Click Transaction Card] --> L[Show Transaction Details Screen]
     L --> M[Copy Explorer URL] --> N[Share Transaction Details]
 ```
