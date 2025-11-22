@@ -11,7 +11,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.35.7-02569B?style=for-the-badge&logo=flutter)](https://flutter.dev)
 [![Stellar](https://img.shields.io/badge/Stellar-Network-7B3F98?style=for-the-badge&logo=stellar)](https://stellar.org)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android%20)](https://flutter.dev)
+[![Platform](https://img.shields.io/badge/Platform-Android%20-lightgrey?style=for-the-badge)](https://flutter.dev)
 
 </div>
 
