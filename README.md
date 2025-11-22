@@ -1,10 +1,10 @@
-# 🏦 Stellar Wallet
+# 🏦 Gringotts Wallet
 
 <div align="center">
 
-![Stellar Wallet Banner](https://github.com/Mantis322/Gringotts-Wallet/blob/main/assets/images/Banner.png)
+![Gringotts Wallet Banner](https://github.com/Mantis322/Gringotts-Wallet/blob/main/assets/images/Banner.png)
 
-**Your premium Stellar blockchain wallet**
+**Your magical vault for digital treasures on the Stellar network**
 
 *"The most secure and elegant way to manage your digital treasures on the Stellar network."*
 
@@ -19,10 +19,10 @@
 
 ## 🌟 Project Overview
 
-**Stellar Wallet** is a premium Stellar blockchain wallet application built with Flutter. This production-ready mobile application combines cutting-edge blockchain technology with premium user experience design, creating the most secure and elegant way to manage your digital treasures on the Stellar network.
+**Gringotts Wallet** is a premium Stellar blockchain wallet application built with Flutter. This production-ready mobile application combines cutting-edge blockchain technology with premium user experience design, creating the most secure and elegant way to manage your digital treasures on the Stellar network.
 
 ### 🎯 Mission Statement
-To provide the most secure, user-friendly, and intuitive Stellar wallet experience, ensuring that your digital assets are protected with enterprise-grade security while maintaining exceptional usability and innovative features like WhisperPay proximity payments.
+To provide the most secure, user-friendly, and intuitive Gringotts wallet experience, ensuring that your digital assets are protected with enterprise-grade security while maintaining exceptional usability and innovative features like WhisperPay proximity payments.
 
 ---
 
