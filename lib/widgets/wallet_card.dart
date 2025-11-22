@@ -319,7 +319,8 @@ class QuickActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        height: 120, // Fixed height for consistent appearance
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: gradient ?? AppColors.cardGradient,
           borderRadius: BorderRadius.circular(16),
@@ -334,17 +335,18 @@ class QuickActionCard extends StatelessWidget {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primaryPurple.withOpacity(0.3),
-                    blurRadius: 12,
+                    blurRadius: 8,
                     spreadRadius: 0,
                   ),
                 ],
@@ -352,30 +354,40 @@ class QuickActionCard extends StatelessWidget {
               child: Icon(
                 icon,
                 color: AppColors.textPrimary,
-                size: 24,
+                size: 20,
               ),
             ).animate(delay: 200.ms)
                 .scale(duration: 400.ms, curve: Curves.elasticOut),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
             ),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
 
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textTertiary,
+            Flexible(
+              child: Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textTertiary,
+                  fontSize: 11,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

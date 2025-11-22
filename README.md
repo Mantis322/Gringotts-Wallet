@@ -49,7 +49,10 @@ To provide the most secure, user-friendly, and intuitive Stellar wallet experien
 - **🌐 Multi-Network Support**: Testnet & Mainnet compatibility
 - **⚡ Lightning Fast**: Near-instant transaction processing
 - **💎 XLM Native Support**: Full Stellar Lumens integration
-- **📊 Complete Transaction History**: Detailed payment tracking
+- **📊 Complete Transaction History**: Comprehensive network-wide transaction tracking ✅
+- **🌐 Network Transaction Discovery**: View ALL Stellar operations (payments, account creation, path payments) ✅
+- **📝 Rich Memo Support**: Full memo extraction with all Stellar memo types ✅
+- **🔍 Detailed Transaction Explorer**: Complete transaction information with explorer integration ✅
 - **🔄 Real-time Balance Updates**: Live network synchronization
 - **💳 Multiple Payment & Receive Methods**: QR Code, NFC, and traditional transfers
 - **🚀 Smart Payment & Receive Options**: Multiple methods including PIN codes ✅
@@ -144,6 +147,38 @@ graph TB
 ---
 
 ### 🆕 Latest Updates
+
+### 📊 Comprehensive Transaction History System (v1.8.5)
+
+<div align="center">
+
+| 🔥 **New Feature** | 📱 **Implementation** | 🎯 **Status** |
+|-------------------|----------------------|---------------|
+| **🌐 Network-Wide Transaction Discovery** | Fetch ALL Stellar operations from the network (not just app transactions) | ✅ Live |
+| **💰 Multiple Operation Support** | Payment operations, Account creation, Path payments (Strict Send/Receive) | ✅ Live |
+| **📝 Rich Memo Extraction** | Support for all Stellar memo types (Text, Hash, ID, Return) | ✅ Live |
+| **📱 Transaction Details Screen** | Comprehensive transaction information with explorer integration | ✅ Live |
+| **🔗 Explorer Integration** | Copy Stellar explorer URLs for external verification | ✅ Live |
+| **📋 Advanced Copy Features** | Copy transaction hash, addresses, amounts, and memos | ✅ Live |
+| **⚡ Performance Optimization** | Memo caching and duplicate transaction filtering | ✅ Live |
+| **🔄 Smart Sorting** | Newest transactions first with proper chronological order | ✅ Live |
+| **🛡️ Error Resilience** | Robust error handling for network operations | ✅ Live |
+
+</div>
+
+#### 📊 Transaction Discovery Flow
+
+```mermaid
+graph TB
+    A[Load Transaction History] --> B[Fetch Operations from Stellar Network]
+    B --> C[Process Payment Operations] --> D[Extract Transaction Details & Memos]
+    C --> E[Process Account Creation Operations] --> D
+    C --> F[Process Path Payment Operations] --> D
+    D --> G[Cache Memos by Transaction Hash] --> H[Filter Duplicate Transactions]
+    H --> I[Sort by Date (Newest First)] --> J[Display in Transaction List]
+    J --> K[Click Transaction Card] --> L[Show Transaction Details Screen]
+    L --> M[Copy Explorer URL] --> N[Share Transaction Details]
+```
 
 ### 📡 WhisperPay - Proximity Payment System (v1.8.0)
 
@@ -715,6 +750,7 @@ graph LR
 │   │   ├── group_wallet_list_screen.dart # Group wallet overview & navigation
 │   │   ├── whisper_pay_send_screen.dart # WhisperPay BLE scanning & payments
 │   │   ├── whisper_pay_receive_screen.dart # WhisperPay BLE advertising & receiving
+│   │   ├── transaction_details_screen.dart # Comprehensive transaction information
 │   │   ├── settings_screen.dart        # App configuration
 │   │   ├── pin_setup_screen.dart       # PIN creation & management
 │   │   ├── pin_unlock_screen.dart      # PIN authentication
@@ -1155,7 +1191,20 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 </div>
 
-#### 🎯 What's New in Latest Update (v1.8.0)
+#### 🎯 What's New in Latest Update (v1.8.5)
+
+- **🌐 Comprehensive Transaction History**: Complete network-wide transaction discovery system
+- **💰 All Operation Types**: Support for payments, account creation, and path payment operations
+- **📝 Rich Memo Support**: Extract and display all Stellar memo types (Text, Hash, ID, Return)
+- **📱 Transaction Details Screen**: Detailed transaction information with explorer integration
+- **🔗 Explorer Integration**: One-click access to Stellar blockchain explorer verification
+- **📋 Advanced Copy Features**: Copy transaction hashes, addresses, amounts, and detailed information
+- **⚡ Performance Optimization**: Smart memo caching and duplicate transaction filtering
+- **🔄 Perfect Sorting**: Newest transactions first with proper chronological ordering
+- **🛡️ Error Resilience**: Robust error handling for network operations and transaction parsing
+- **📊 Complete Transaction View**: See ALL your Stellar network activity, not just app transactions
+
+#### 🎯 Previous Update (v1.8.0) - WhisperPay System
 
 - **📡 Complete WhisperPay System**: Full Bluetooth Low Energy proximity payment platform
 - **🔐 BLE Data Exchange**: Secure service data advertising with 4-byte session identification

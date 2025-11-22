@@ -221,19 +221,12 @@ class _SendScreenState extends State<SendScreen> {
       return;
     }
 
-    // Check if destination account exists (this prevents tx_failed)
+    // Check if destination account exists and ask for confirmation if not
     setState(() => _isSending = true);
     
+    bool accountExists = false;
     try {
-      final accountExists = await StellarService.accountExists(destinationAddress);
-      if (!accountExists) {
-        setState(() => _isSending = false);
-        _showErrorDialog(
-          'Account Not Found',
-          'The destination account does not exist on the Stellar network.\n\nThe recipient must first create and activate their Stellar account to receive transfers.',
-        );
-        return;
-      }
+      accountExists = await StellarService.accountExists(destinationAddress);
     } catch (e) {
       setState(() => _isSending = false);
       _showErrorDialog(
@@ -244,6 +237,12 @@ class _SendScreenState extends State<SendScreen> {
     }
     
     setState(() => _isSending = false);
+
+    // If account doesn't exist, ask for confirmation
+    if (!accountExists) {
+      final shouldProceed = await _showInactiveAccountConfirmation();
+      if (!shouldProceed) return;
+    }
 
     // Show confirmation dialog
     final confirmed = await _showConfirmationDialog();
@@ -293,6 +292,113 @@ class _SendScreenState extends State<SendScreen> {
     return await showDialog<bool>(
       context: context,
       builder: (context) => _buildConfirmationDialog(),
+    ) ?? false;
+  }
+
+  Future<bool> _showInactiveAccountConfirmation() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              Icons.warning_amber,
+              color: AppColors.warningOrange,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Inactive Account',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You are sending to an inactive or non-existent Stellar account.',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.warningOrange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.warningOrange.withOpacity(0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'This transfer will:',
+                    style: TextStyle(
+                      color: AppColors.warningOrange,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '• Activate the recipient\'s account (requires minimum 1 XLM)\n'
+                    '• Allow them to receive future payments\n'
+                    '• Cannot be reversed once sent',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Do you want to proceed with this transfer?',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.warningOrange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Proceed',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
     ) ?? false;
   }
 

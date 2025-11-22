@@ -286,34 +286,152 @@ class StellarService {
     return '${timestamp}_$randomPart';
   }
 
-  /// Get transaction history (simplified for demo)
+  /// Get comprehensive transaction history from Stellar network
   static Future<List<TransactionModel>> getTransactionHistory(String publicKey) async {
     try {
-      final payments = await sdk.payments.forAccount(publicKey).limit(20).execute();
-      final transactions = <TransactionModel>[];
-      
-      for (final payment in payments.records) {
-        if (payment is PaymentOperationResponse) {
-          final isIncoming = payment.to == publicKey;
+      // Get all operations for this account (payments, account creation, etc.)
+      final operationsResponse = await sdk.operations.forAccount(publicKey).limit(100).execute();
+      final List<TransactionModel> allTransactions = [];
+      final Map<String, String> transactionMemos = {}; // Cache memos by transaction hash
+
+      for (final operation in operationsResponse.records) {
+        try {
+          TransactionModel? transaction;
           
-          transactions.add(TransactionModel(
-            id: payment.id,
-            hash: payment.transactionHash,
-            sourceAccount: payment.from,
-            destinationAccount: payment.to,
-            amount: double.parse(payment.amount),
-            assetCode: payment.assetType == 'native' ? 'XLM' : (payment.assetCode ?? ''),
-            memo: '', // Memo would need to be fetched from transaction details
-            createdAt: DateTime.parse(payment.createdAt),
-            status: TransactionStatus.success,
-            type: isIncoming ? TransactionType.received : TransactionType.sent,
-            fee: 0.0001, // Standard fee
-          ));
+          // Get memo for this transaction (cache to avoid repeated calls)
+          String memo = '';
+          if (!transactionMemos.containsKey(operation.transactionHash)) {
+            try {
+              final txDetails = await sdk.transactions.transaction(operation.transactionHash);
+              String memoText = '';
+              
+              // Extract memo from transaction details
+              if (txDetails.memo != null) {
+                final memoObj = txDetails.memo;
+                if (memoObj is MemoText) {
+                  memoText = memoObj.text ?? '';
+                } else if (memoObj is MemoHash) {
+                  memoText = 'Hash: ${memoObj.hexValue}';
+                } else if (memoObj is MemoId) {
+                  memoText = 'ID: ${memoObj.toString()}';
+                } else {
+                  memoText = memoObj.toString();
+                }
+              }
+              
+              transactionMemos[operation.transactionHash] = memoText;
+            } catch (e) {
+              transactionMemos[operation.transactionHash] = '';
+            }
+          }
+          memo = transactionMemos[operation.transactionHash] ?? '';
+          
+          if (operation is PaymentOperationResponse) {
+            // Handle payment operations
+            final isIncoming = operation.to == publicKey;
+            transaction = TransactionModel(
+              id: operation.id,
+              hash: operation.transactionHash,
+              sourceAccount: operation.from,
+              destinationAccount: operation.to,
+              amount: double.parse(operation.amount),
+              assetCode: operation.assetType == 'native' ? 'XLM' : (operation.assetCode ?? ''),
+              memo: memo,
+              createdAt: DateTime.parse(operation.createdAt),
+              status: TransactionStatus.success,
+              type: isIncoming ? TransactionType.received : TransactionType.sent,
+              fee: 0.0001, // Standard fee approximation
+            );
+          } else if (operation is CreateAccountOperationResponse) {
+            // Handle account creation operations
+            final isIncoming = operation.account == publicKey;
+            if (isIncoming) {
+              transaction = TransactionModel(
+                id: operation.id,
+                hash: operation.transactionHash,
+                sourceAccount: operation.funder,
+                destinationAccount: operation.account,
+                amount: double.parse(operation.startingBalance),
+                assetCode: 'XLM',
+                memo: memo.isEmpty ? 'Account creation' : memo,
+                createdAt: DateTime.parse(operation.createdAt),
+                status: TransactionStatus.success,
+                type: TransactionType.received,
+                fee: 0.0001,
+              );
+            }
+          } else if (operation is PathPaymentStrictReceiveOperationResponse) {
+            // Handle path payment operations
+            final isIncoming = operation.to == publicKey;
+            final isOutgoing = operation.from == publicKey;
+            
+            if (isIncoming || isOutgoing) {
+              transaction = TransactionModel(
+                id: operation.id,
+                hash: operation.transactionHash,
+                sourceAccount: operation.from,
+                destinationAccount: operation.to,
+                amount: double.parse(isIncoming ? operation.amount : (operation.sourceAmount ?? '0')),
+                assetCode: isIncoming 
+                  ? (operation.assetType == 'native' ? 'XLM' : (operation.assetCode ?? ''))
+                  : (operation.sourceAssetType == 'native' ? 'XLM' : (operation.sourceAssetCode ?? '')),
+                memo: memo.isEmpty ? 'Path payment' : memo,
+                createdAt: DateTime.parse(operation.createdAt),
+                status: TransactionStatus.success,
+                type: isIncoming ? TransactionType.received : TransactionType.sent,
+                fee: 0.0001,
+              );
+            }
+          } else if (operation is PathPaymentStrictSendOperationResponse) {
+            // Handle strict send path payment operations
+            final isIncoming = operation.to == publicKey;
+            final isOutgoing = operation.from == publicKey;
+            
+            if (isIncoming || isOutgoing) {
+              transaction = TransactionModel(
+                id: operation.id,
+                hash: operation.transactionHash,
+                sourceAccount: operation.from,
+                destinationAccount: operation.to,
+                amount: double.parse(isOutgoing ? operation.sourceAmount : operation.amount),
+                assetCode: isOutgoing 
+                  ? (operation.sourceAssetType == 'native' ? 'XLM' : (operation.sourceAssetCode ?? ''))
+                  : (operation.assetType == 'native' ? 'XLM' : (operation.assetCode ?? '')),
+                memo: memo.isEmpty ? 'Path payment' : memo,
+                createdAt: DateTime.parse(operation.createdAt),
+                status: TransactionStatus.success,
+                type: isIncoming ? TransactionType.received : TransactionType.sent,
+                fee: 0.0001,
+              );
+            }
+          }
+          
+          if (transaction != null) {
+            allTransactions.add(transaction);
+          }
+        } catch (e) {
+          debugPrint('Error processing operation ${operation.id}: $e');
+          // Continue with next operation
+          continue;
         }
       }
       
-      return transactions;
+      // Remove duplicates (same transaction hash might appear multiple times)
+      final uniqueTransactions = <String, TransactionModel>{};
+      for (final tx in allTransactions) {
+        final key = '${tx.hash}_${tx.type}_${tx.amount}';
+        if (!uniqueTransactions.containsKey(key)) {
+          uniqueTransactions[key] = tx;
+        }
+      }
+      
+      // Sort by date (newest first)
+      final finalTransactions = uniqueTransactions.values.toList();
+      finalTransactions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
+      return finalTransactions;
     } catch (e) {
+      debugPrint('Error fetching comprehensive transaction history: $e');
       return [];
     }
   }

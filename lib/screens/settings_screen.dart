@@ -11,7 +11,6 @@ import '../services/auth_service.dart';
 import '../services/wallet_registry_service.dart';
 import 'pin_setup_screen.dart';
 import 'pin_unlock_screen.dart';
-import 'debug_auth_screen.dart';
 
 /// Settings Screen
 /// Wallet configuration and management interface
@@ -502,14 +501,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Get help and contact us',
           Icons.help_outline,
           onTap: () => _showComingSoonSnackbar(),
-        ),
-        _buildListTile(
-          'Debug Auth',
-          'Check authentication status (Debug)',
-          Icons.bug_report,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const DebugAuthScreen()),
-          ),
         ),
       ],
     ).animate(delay: 800.ms)

@@ -8,7 +8,6 @@ import '../services/wallet_registry_service.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/wallet_card.dart';
 import '../widgets/transfer_options_modal.dart';
-import '../services/split_bill_service.dart';
 import '../widgets/receive_options_modal.dart';
 import '../widgets/wallet_selector.dart';
 import '../widgets/wallet_name_setup_dialog.dart';
@@ -23,14 +22,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  int _unreadSplitBillCount = 0;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeWallet();
-    _loadUnreadSplitBills();
   }
 
   @override
@@ -42,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _loadUnreadSplitBills();
+      // App resumed - could refresh data here if needed
     }
   }
 
@@ -106,19 +102,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await walletProvider.loadTransactions();
   }
 
-  Future<void> _loadUnreadSplitBills() async {
-    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-    if (walletProvider.activeWallet?.name != null) {
-      final count = await SplitBillService.getUnreadInvitationsCount(
-        walletProvider.activeWallet!.name,
-      );
-      if (mounted) {
-        setState(() {
-          _unreadSplitBillCount = count;
-        });
-      }
-    }
-  }
+
 
   void _showTransferOptions() {
     showModalBottomSheet(
@@ -359,50 +343,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Row(
             children: [
               Expanded(
-                child: Stack(
-                  children: [
-                    QuickActionCard(
-                      icon: Icons.receipt_long,
-                      title: 'My Split Bills',
-                      subtitle: 'Multiple options',
-                      onTap: () async {
-                        await AppRoutes.push(context, AppRoutes.splitBillManagement);
-                        // Refresh unread count when returning from split bill management
-                        _loadUnreadSplitBills();
-                      },
-                      gradient: AppColors.accentGradient,
-                    ).animate(delay: 1000.ms)
-                        .slideY(begin: 0.3, duration: 500.ms)
-                        .fadeIn(duration: 500.ms),
-                    
-                    // Badge for unread notifications
-                    if (_unreadSplitBillCount > 0)
-                      Positioned(
-                        right: 16,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 24,
-                            minHeight: 24,
-                          ),
-                          child: Text(
-                            _unreadSplitBillCount > 99 ? '99+' : _unreadSplitBillCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                child: QuickActionCard(
+                  icon: Icons.receipt_long,
+                  title: 'My Split Bills',
+                  subtitle: 'Multiple options',
+                  onTap: () {
+                    AppRoutes.push(context, AppRoutes.splitBillManagement);
+                  },
+                  gradient: AppColors.accentGradient,
+                ).animate(delay: 1000.ms)
+                    .slideY(begin: 0.3, duration: 500.ms)
+                    .fadeIn(duration: 500.ms),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -503,9 +454,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: walletProvider.transactions.length,
             itemBuilder: (context, index) {
-              // Reverse the list so newest transactions appear first
-              final reversedIndex = walletProvider.transactions.length - 1 - index;
-              final transaction = walletProvider.transactions[reversedIndex];
+              // Transactions are already sorted by date (newest first) from StellarService
+              final transaction = walletProvider.transactions[index];
               return TransactionCard(
                 hash: transaction.shortHash,
                 type: transaction.type.name,
@@ -513,7 +463,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 date: _formatDate(transaction.createdAt),
                 isIncoming: transaction.isIncoming,
                 onTap: () {
-                  // TODO: Show transaction details
+                  AppRoutes.push(
+                    context, 
+                    AppRoutes.transactionDetails,
+                    arguments: {'transaction': transaction},
+                  );
                 },
               ).animate(delay: Duration(milliseconds: 1200 + (index * 100)))
                   .slideX(begin: 0.3, duration: 400.ms)

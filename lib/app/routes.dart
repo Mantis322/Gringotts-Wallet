@@ -15,6 +15,8 @@ import '../screens/group_wallet_dashboard_screen.dart';
 import '../screens/group_wallet_list_screen.dart';
 import '../screens/whisper_pay_receive_screen.dart';
 import '../screens/whisper_pay_send_screen.dart';
+import '../screens/transaction_details_screen.dart';
+import '../models/wallet_model.dart';
 
 /// Application Route Management
 /// Centralized navigation and route handling
@@ -38,6 +40,7 @@ class AppRoutes {
   static const String groupWalletList = '/group-wallet-list';
   static const String whisperPayReceive = '/whisper-pay-receive';
   static const String whisperPaySend = '/whisper-pay-send';
+  static const String transactionDetails = '/transaction-details';
   
   // Generate Routes
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -100,6 +103,20 @@ class AppRoutes {
       
       case whisperPaySend:
         return _createRoute(const WhisperPaySendScreen());
+      
+      case transactionDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final transaction = args?['transaction'] as TransactionModel?;
+        if (transaction != null) {
+          return _createRoute(TransactionDetailsScreen(transaction: transaction));
+        }
+        return _createRoute(
+          const Scaffold(
+            body: Center(
+              child: Text('Transaction data required'),
+            ),
+          ),
+        );
       
       default:
         return _createRoute(
