@@ -865,13 +865,9 @@ class _SendScreenState extends State<SendScreen> {
         TextField(
           controller: _amountController,
           focusNode: _amountFocus,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Amount',
             hintText: '0.0000000',
-            prefixIcon: Icon(
-              Icons.monetization_on,
-              color: AppColors.textTertiary,
-            ),
             suffixText: 'XLM',
           ),
           style: TextStyle(

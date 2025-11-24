@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -359,7 +358,7 @@ class WhisperPayService extends ChangeNotifier {
       // Cache PIN code for later use
       _pinCodeCache[pinCodeString] = pinCodeModel;
       
-      final sessionId = 'WP${pinCodeString}';
+      final sessionId = 'WP$pinCodeString';
       final amount = pinCodeModel.amount;
       final walletAddress = pinCodeModel.walletPublicKey;
       

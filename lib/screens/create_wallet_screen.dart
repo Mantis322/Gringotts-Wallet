@@ -21,8 +21,6 @@ class CreateWalletScreen extends StatefulWidget {
 
 class _CreateWalletScreenState extends State<CreateWalletScreen> {
   final TextEditingController _secretKeyController = TextEditingController();
-  final TextEditingController _walletNameController = TextEditingController(text: 'My Wallet');
-  final TextEditingController _importNameController = TextEditingController(text: 'Imported Wallet');
   bool _isCreatingWallet = false;
   bool _isImportingWallet = false;
   bool _showImportSection = false;
@@ -38,30 +36,9 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   }
 
   Future<void> _createNewWallet() async {
-    final walletName = _walletNameController.text.trim();
-    if (walletName.isEmpty) {
-      _showSnackBar('Please enter a wallet name', Colors.red);
-      return;
-    }
-
-    // Validate wallet name format
-    final validation = WalletRegistryService.validateWalletName(walletName);
-    if (!validation.isValid) {
-      _showSnackBar(validation.error ?? 'Invalid wallet name', Colors.red);
-      return;
-    }
-
     setState(() => _isCreatingWallet = true);
     
     try {
-      // Check if wallet name is available
-      final isAvailable = await WalletRegistryService.isWalletNameAvailable(walletName);
-      if (!isAvailable) {
-        setState(() => _isCreatingWallet = false);
-        _showSnackBar('Wallet name "$walletName" is already taken', Colors.red);
-        return;
-      }
-
       // Show loading feedback
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -85,7 +62,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       );
       
       final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-      final success = await walletProvider.createWallet(name: walletName);
+      final success = await walletProvider.createWallet();
       
       if (success && mounted) {
         // Close loading dialog
@@ -93,21 +70,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
         
         final wallet = walletProvider.wallet;
         if (wallet != null) {
-          try {
-            // Register wallet name in Firebase
-            await WalletRegistryService.registerWalletName(
-              walletName: walletName,
-              publicKey: wallet.publicKey,
-              displayName: walletName,
-            );
-            
-            _showSnackBar('Wallet created and registered successfully!', AppColors.primaryPurple);
-          } catch (e) {
-            // Wallet created but registration failed - still show backup
-            _showSnackBar('Wallet created but name registration failed: $e', Colors.orange);
-          }
-          
-          // Secret key'i al ve backup ekranını göster
+          // Show backup screen with the secret key
           final secretKey = wallet.secretKey ?? '';
           if (secretKey.isNotEmpty) {
             _showBackupSecretKeyScreen(secretKey);
@@ -151,19 +114,6 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       return;
     }
 
-    final walletName = _importNameController.text.trim();
-    if (walletName.isEmpty) {
-      _showSnackBar('Please enter a wallet name', Colors.red);
-      return;
-    }
-
-    // Validate wallet name format
-    final validation = WalletRegistryService.validateWalletName(walletName);
-    if (!validation.isValid) {
-      _showSnackBar(validation.error ?? 'Invalid wallet name', Colors.red);
-      return;
-    }
-
     setState(() => _isImportingWallet = true);
     
     try {
@@ -178,13 +128,6 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       if (existingWallet != null) {
         setState(() => _isImportingWallet = false);
         _showDuplicateWalletWarning(existingWallet.name);
-        return;
-      }
-      
-      // Check if wallet name is available
-      final isAvailable = await WalletRegistryService.isWalletNameAvailable(walletName);
-      if (!isAvailable) {
-        _showSnackBar('Wallet name "$walletName" is already taken', Colors.red);
         return;
       }
 
@@ -211,8 +154,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       );
       
       final success = await walletProvider.importWalletFromSecretKey(
-        secretKey: _secretKeyController.text.trim(),
-        name: walletName,
+        secretKey: secretKey,
         setAsActive: true,
       );
       
@@ -220,17 +162,15 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
         final wallet = walletProvider.wallet;
         if (wallet != null) {
           try {
-            // Register wallet name in Firebase
-            await WalletRegistryService.registerWalletName(
-              walletName: walletName,
-              publicKey: wallet.publicKey,
-              displayName: walletName,
+            // If registry already has a name, sync it locally
+            final registryEntry = await WalletRegistryService.getWalletInfoByPublicKey(
+              wallet.publicKey,
             );
-            
-            _showSnackBar('Wallet imported and registered successfully!', AppColors.primaryPurple);
+            if (registryEntry != null) {
+              await walletProvider.updateWalletName(wallet.id, registryEntry.displayName);
+            }
           } catch (e) {
-            // Wallet imported but registration failed
-            _showSnackBar('Wallet imported but name registration failed: $e', Colors.orange);
+            debugPrint('Import registry lookup failed: $e');
           }
         }
         
@@ -298,8 +238,6 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   @override
   void dispose() {
     _secretKeyController.dispose();
-    _walletNameController.dispose();
-    _importNameController.dispose();
     super.dispose();
   }
 
@@ -355,7 +293,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
           ),
           const Spacer(),
           Text(
-            'Stellar Wallet',
+            'Gringotts Wallet',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w700,
@@ -427,51 +365,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   Widget _buildWalletOptions() {
     return Column(
       children: [
-        // Wallet Name Input
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.borderLight),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Wallet Name',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _walletNameController,
-                decoration: InputDecoration(
-                  hintText: 'Enter wallet name (3-20 chars, letters, numbers, _)',
-                  hintStyle: TextStyle(color: AppColors.textSecondary),
-                  helperText: 'This name will be registered globally as @${_walletNameController.text.isEmpty ? 'walletname' : _walletNameController.text}',
-                  helperStyle: TextStyle(color: AppColors.textTertiary, fontSize: 11),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppColors.borderLight),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppColors.primaryPurple),
-                  ),
-                  filled: true,
-                  fillColor: AppColors.backgroundDark,
-                ),
-                style: TextStyle(color: AppColors.textPrimary),
-                onChanged: (value) => setState(() {}), // Update helper text
-              ),
-            ],
-          ),
-        ).animate(delay: 600.ms),
 
-        const SizedBox(height: 20),
 
         WalletCard(
           title: 'Create New Wallet',
@@ -568,30 +462,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
 
           const SizedBox(height: 20),
 
-          TextField(
-            controller: _importNameController,
-            decoration: InputDecoration(
-              labelText: 'Wallet Name',
-              hintText: 'Enter a name for this wallet (3-20 chars)',
-              helperText: 'This name will be registered globally as @${_importNameController.text.isEmpty ? 'walletname' : _importNameController.text}',
-              helperStyle: TextStyle(color: AppColors.textTertiary, fontSize: 11),
-              labelStyle: TextStyle(color: AppColors.textSecondary),
-              hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.7)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.borderLight),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.primaryPurple),
-              ),
-              prefixIcon: Icon(Icons.label_outline, color: AppColors.primaryPurple),
-            ),
-            style: TextStyle(color: AppColors.textPrimary),
-            onChanged: (value) => setState(() {}), // Update helper text
-          ),
 
-          const SizedBox(height: 16),
 
           TextField(
             controller: _secretKeyController,
@@ -728,3 +599,18 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

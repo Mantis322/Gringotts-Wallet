@@ -108,7 +108,7 @@ class _WhisperPayReceiveScreenState extends State<WhisperPayReceiveScreen>
           'Select Wallet for WhisperPay',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        content: Container(
+        content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
             shrinkWrap: true,
@@ -579,7 +579,6 @@ class _WhisperPayReceiveScreenState extends State<WhisperPayReceiveScreen>
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: const Icon(Icons.currency_exchange, color: AppColors.accent),
                     ),
                   ),
                 ],
