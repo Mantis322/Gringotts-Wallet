@@ -154,8 +154,10 @@ class _CreateSplitBillScreenState extends State<CreateSplitBillScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final amountPerPerson = _participants.isNotEmpty && _totalAmountController.text.isNotEmpty
-        ? (double.tryParse(_totalAmountController.text) ?? 0.0) / _participants.length
+    final participantCount = _participants.length;
+    final totalPeople = participantCount + 1; // Creator is included automatically
+    final amountPerPerson = totalPeople > 0 && _totalAmountController.text.isNotEmpty
+        ? (double.tryParse(_totalAmountController.text) ?? 0.0) / totalPeople
         : 0.0;
 
     return Scaffold(
@@ -225,7 +227,10 @@ class _CreateSplitBillScreenState extends State<CreateSplitBillScreen> {
                   
                   // Summary
                   if (_participants.isNotEmpty)
-                    _buildSummary(amountPerPerson),
+                    _buildSummary(
+                      amountPerPerson: amountPerPerson,
+                      totalPeople: totalPeople,
+                    ),
                   
                   const SizedBox(height: 32),
                   
@@ -497,7 +502,10 @@ class _CreateSplitBillScreenState extends State<CreateSplitBillScreen> {
     );
   }
 
-  Widget _buildSummary(double amountPerPerson) {
+  Widget _buildSummary({
+    required double amountPerPerson,
+    required int totalPeople,
+  }) {
     return Container(
       decoration: BoxDecoration(
         gradient: AppColors.accentGradient,
@@ -553,14 +561,14 @@ class _CreateSplitBillScreenState extends State<CreateSplitBillScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Participants:',
+                  'Participants (incl. you):',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
                 Text(
-                  '${_participants.length} people',
+                  '$totalPeople people',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,

@@ -32,8 +32,9 @@ class SplitBillService {
         }
       }
 
-      // Calculate amount per participant (creator is NOT included)
-      final amountPerParticipant = totalAmount / participantWalletNames.length;
+      // Calculate each person's share including the creator
+      final totalPeople = participantWalletNames.length + 1; // creator + participants
+      final amountPerParticipant = totalPeople > 0 ? totalAmount / totalPeople : totalAmount;
       
       final now = DateTime.now();
       final expiresAt = now.add(expiryDuration ?? const Duration(days: 7));
@@ -86,17 +87,22 @@ class SplitBillService {
       }
 
       final splitBill = SplitBillModel.fromFirestore(doc);
+      final totalPeople = splitBill.totalPeople;
+      final normalizedShare = totalPeople > 0
+          ? splitBill.totalAmount / totalPeople
+          : splitBill.totalAmount;
       
-      // Find and update participant
+      // Find and update participant while normalizing share
       final updatedParticipants = splitBill.participants.map((participant) {
+        final syncedParticipant = participant.copyWith(amount: normalizedShare);
         if (participant.walletName == participantWalletName) {
-          return participant.copyWith(
+          return syncedParticipant.copyWith(
             status: SplitParticipantStatus.paid,
             paidAt: DateTime.now(),
             transactionHash: transactionHash,
           );
         }
-        return participant;
+        return syncedParticipant;
       }).toList();
 
       // Update split bill status if all participants paid
@@ -233,17 +239,22 @@ class SplitBillService {
         }
 
         final splitBill = SplitBillModel.fromFirestore(doc);
+        final totalPeople = splitBill.totalPeople;
+        final normalizedShare = totalPeople > 0
+            ? splitBill.totalAmount / totalPeople
+            : splitBill.totalAmount;
         
-        // Find the participant and update their status
+        // Ensure participant amounts are normalized and update payer status
         final updatedParticipants = splitBill.participants.map((participant) {
+          final syncedParticipant = participant.copyWith(amount: normalizedShare);
           if (participant.walletName == participantWalletName) {
-            return participant.copyWith(
+            return syncedParticipant.copyWith(
               status: SplitParticipantStatus.paid,
               paidAt: DateTime.now(),
               transactionHash: transactionHash,
             );
           }
-          return participant;
+          return syncedParticipant;
         }).toList();
 
         // Check if all participants have paid

@@ -28,7 +28,13 @@ class SplitBillModel {
   });
 
   /// Amount per participant (already calculated correctly during creation)
-  double get amountPerParticipant => participants.isNotEmpty ? participants.first.amount : 0.0;
+  double get amountPerParticipant {
+    if (totalPeople == 0) return 0.0;
+    return totalAmount / totalPeople;
+  }
+
+  /// Total number of people sharing the bill (creator + invited)
+  int get totalPeople => (participantWalletNames?.length ?? participants.length) + 1;
 
   /// Number of paid participants
   int get paidCount => participants.where((p) => p.status == SplitParticipantStatus.paid).length;
@@ -38,8 +44,8 @@ class SplitBillModel {
 
   /// Total amount collected so far
   double get collectedAmount => participants
-      .where((p) => p.status == SplitParticipantStatus.paid)
-      .fold(0.0, (sum, p) => sum + p.amount);
+      .where((participant) => participant.status == SplitParticipantStatus.paid)
+      .fold<double>(0.0, (runningTotal, participant) => runningTotal + participant.amount);
 
   /// Remaining amount to be collected
   double get remainingAmount => totalAmount - collectedAmount;
@@ -53,17 +59,41 @@ class SplitBillModel {
   /// Create from Firestore document
   factory SplitBillModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    final totalAmount = (data['totalAmount'] ?? 0.0).toDouble();
+
+    // Read participant identifiers and raw participant entries
+    final participantWalletNames = (data['participantWalletNames'] as List<dynamic>?)
+        ?.map((name) => name.toString())
+        .toList();
+    final participantsFromDb = (data['participants'] as List<dynamic>? ?? [])
+        .map((p) => SplitParticipant.fromMap(p as Map<String, dynamic>))
+        .toList();
+
+    // Normalize the per-person share to always include the creator
+    final totalPeople = (participantWalletNames?.length ?? participantsFromDb.length) + 1;
+    final normalizedShare = totalPeople > 0 ? totalAmount / totalPeople : 0.0;
+
+    // Keep existing participant records but sync their amounts to the normalized share
+    // If the participants array is missing, rebuild it from the wallet names list
+    final normalizedParticipants = participantsFromDb.isNotEmpty
+        ? participantsFromDb
+            .map((p) => p.copyWith(amount: normalizedShare))
+            .toList()
+        : (participantWalletNames ?? [])
+            .map((name) => SplitParticipant(
+                  walletName: name,
+                  amount: normalizedShare,
+                  status: SplitParticipantStatus.pending,
+                ))
+            .toList();
     
     return SplitBillModel(
       id: doc.id,
       creatorWalletName: data['creatorWalletName'] ?? '',
-      totalAmount: (data['totalAmount'] ?? 0.0).toDouble(),
+      totalAmount: totalAmount,
       description: data['description'] ?? '',
-      participants: (data['participants'] as List<dynamic>? ?? [])
-          .map((p) => SplitParticipant.fromMap(p as Map<String, dynamic>))
-          .toList(),
-      participantWalletNames: (data['participantWalletNames'] as List<dynamic>?)
-          ?.map((name) => name.toString()).toList(),
+      participants: normalizedParticipants,
+      participantWalletNames: participantWalletNames,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       expiresAt: (data['expiresAt'] as Timestamp).toDate(),
       status: SplitBillStatus.values.firstWhere(
@@ -76,13 +106,20 @@ class SplitBillModel {
 
   /// Convert to Firestore document
   Map<String, dynamic> toFirestore() {
+    // Ensure participant amounts are always aligned with the normalized share
+    final normalizedShare = amountPerParticipant;
+    final normalizedParticipants = participants
+        .map((p) => p.copyWith(amount: normalizedShare))
+        .toList();
+
     return {
       'creatorWalletName': creatorWalletName,
       'totalAmount': totalAmount,
       'description': description,
-      'participants': participants.map((p) => p.toMap()).toList(),
+      'participants': normalizedParticipants.map((p) => p.toMap()).toList(),
       // Helpful top-level array for efficient querying of invited users
-      'participantWalletNames': participants.map((p) => p.walletName).toList(),
+      'participantWalletNames':
+          participantWalletNames ?? participants.map((p) => p.walletName).toList(),
       'createdAt': Timestamp.fromDate(createdAt),
       'expiresAt': Timestamp.fromDate(expiresAt),
       'status': status.name,

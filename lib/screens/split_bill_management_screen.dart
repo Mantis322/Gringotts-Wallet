@@ -20,16 +20,11 @@ class SplitBillManagementScreen extends StatefulWidget {
 class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
-  String? _activeWalletName;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
-    // Get active wallet name
-    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-    _activeWalletName = walletProvider.activeWallet?.name;
   }
 
   @override
@@ -44,7 +39,10 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (_activeWalletName == null) {
+    final walletProvider = Provider.of<WalletProvider>(context);
+    final activeWalletName = walletProvider.activeWallet?.name;
+
+    if (activeWalletName == null) {
       return Scaffold(
         backgroundColor: AppColors.backgroundDark,
         appBar: AppBar(
@@ -131,17 +129,17 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
         child: TabBarView(
           controller: _tabController,
           children: [
-            _buildCreatedBillsTab(),
-            _buildInvitedBillsTab(),
+            _buildCreatedBillsTab(activeWalletName),
+            _buildInvitedBillsTab(activeWalletName),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCreatedBillsTab() {
+  Widget _buildCreatedBillsTab(String activeWalletName) {
     return StreamBuilder<QuerySnapshot>(
-      stream: SplitBillService.getCreatedSplitBills(_activeWalletName!),
+      stream: SplitBillService.getCreatedSplitBills(activeWalletName),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -222,16 +220,16 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
           itemBuilder: (context, index) {
             final doc = splitBills[index];
             final splitBill = SplitBillModel.fromFirestore(doc);
-            return _buildSplitBillCard(splitBill, isCreator: true);
+            return _buildSplitBillCard(splitBill, activeWalletName, isCreator: true);
           },
         );
       },
     );
   }
 
-  Widget _buildInvitedBillsTab() {
+  Widget _buildInvitedBillsTab(String activeWalletName) {
     return StreamBuilder<QuerySnapshot>(
-      stream: SplitBillService.getInvitedSplitBills(_activeWalletName!),
+      stream: SplitBillService.getInvitedSplitBills(activeWalletName),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -301,9 +299,9 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
         // But we need to exclude bills where user is the creator
         final invitedSplitBills = splitBills.where((doc) {
           final splitBill = SplitBillModel.fromFirestore(doc);
-          final isCreator = splitBill.creatorWalletName == _activeWalletName;
+          final isCreator = splitBill.creatorWalletName == activeWalletName;
           // Use participantWalletNames array instead of participants list for consistency
-          final isParticipant = splitBill.participantWalletNames?.contains(_activeWalletName) ?? false;
+          final isParticipant = splitBill.participantWalletNames?.contains(activeWalletName) ?? false;
           
           // User should be a participant but not the creator
           return !isCreator && isParticipant;
@@ -347,19 +345,34 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
           itemBuilder: (context, index) {
             final doc = invitedSplitBills[index];
             final splitBill = SplitBillModel.fromFirestore(doc);
-            return _buildSplitBillCard(splitBill, isCreator: false);
+            return _buildSplitBillCard(splitBill, activeWalletName, isCreator: false);
           },
         );
       },
     );
   }
 
-  Widget _buildSplitBillCard(SplitBillModel splitBill, {required bool isCreator}) {
+  Widget _buildSplitBillCard(
+    SplitBillModel splitBill,
+    String activeWalletName, {
+    required bool isCreator,
+  }) {
     final isCompleted = splitBill.isCompleted;
-    
+    final perPersonShare = _calculateShare(splitBill);
+    final participantsAmountsDebug = splitBill.participants
+        .map((p) => '${p.walletName}:${p.amount.toStringAsFixed(7)}')
+        .join(', ');
+
+    debugPrint(
+      '[SplitBill] id:${splitBill.id} desc:${splitBill.description} total:${splitBill.totalAmount} '
+      'invited:${splitBill.participants.length} totalPeople:${_getTotalParticipantCount(splitBill)} '
+      'perShare:${perPersonShare.toStringAsFixed(7)} paid:${_getPaidCount(splitBill)} '
+      'participantAmounts:${participantsAmountsDebug}',
+    );
+
     // Find my participant record (will be null if I'm the creator)
     final myParticipant = splitBill.participants.where(
-      (p) => p.walletName == _activeWalletName,
+      (p) => p.walletName == activeWalletName,
     ).firstOrNull;
 
     return Container(
@@ -489,7 +502,7 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
                         ),
                       ),
                       Text(
-                        '${myParticipant.amount.toStringAsFixed(7)} XLM',
+                        '${perPersonShare.toStringAsFixed(7)} XLM',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -538,7 +551,7 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Participants: ${splitBill.participants.where((p) => p.isPaid).length}/${splitBill.participants.length} paid',
+                  'Participants: ${_getPaidCount(splitBill)}/${_getTotalParticipantCount(splitBill)} paid',
                   style: TextStyle(
                     fontSize: 14,
                     color: isCompleted 
@@ -571,7 +584,7 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Payment pending - ${myParticipant.amount.toStringAsFixed(7)} XLM',
+                        'Payment pending - ${perPersonShare.toStringAsFixed(7)} XLM',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -621,9 +634,9 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
                       size: 20,
                     ),
                     const SizedBox(width: 12),
-                    const Text(
-                      'You have paid your share',
-                      style: TextStyle(
+                    Text(
+                      'You have paid ${perPersonShare.toStringAsFixed(7)} XLM',
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Colors.green,
@@ -666,6 +679,7 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
   }
 
   void _payShare(SplitBillModel splitBill, SplitParticipant participant) {
+    final perPersonShare = _calculateShare(splitBill);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -699,7 +713,7 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Amount: ${participant.amount.toStringAsFixed(7)} XLM',
+                    'Amount: ${perPersonShare.toStringAsFixed(7)} XLM',
                     style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.w700, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
@@ -781,10 +795,12 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
         throw Exception('Wallet secret key not available');
       }
       
+      final paymentAmount = splitBill.amountPerParticipant;
+      
       final transaction = await StellarService.sendPayment(
         secretKey: secretKey,
         destinationAddress: creatorPublicKey,
-        amount: participant.amount,
+        amount: paymentAmount,
         memo: 'Split Bill: ${splitBill.description}',
       );
       
@@ -820,7 +836,7 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
             ],
           ),
           content: Text(
-            'Your payment of ${participant.amount.toStringAsFixed(7)} XLM has been processed successfully!',
+            'Your payment of ${paymentAmount.toStringAsFixed(7)} XLM has been processed successfully!',
             style: TextStyle(color: AppColors.textPrimary),
           ),
           actions: [
@@ -869,5 +885,23 @@ class _SplitBillManagementScreenState extends State<SplitBillManagementScreen>
         ),
       );
     }
+  }
+
+  double _calculateShare(SplitBillModel splitBill) {
+    return splitBill.amountPerParticipant;
+  }
+
+  int _getPaidCount(SplitBillModel splitBill) {
+    final invitedCount = splitBill.participantWalletNames?.length ?? splitBill.participants.length;
+    final paidParticipants = splitBill.participants.where((p) => p.isPaid).length;
+    final totalPeople = splitBill.totalPeople;
+
+    // Creator is assumed paid on creation, so start from 1
+    final paidWithCreator = paidParticipants + 1;
+    return paidWithCreator > totalPeople ? totalPeople : paidWithCreator;
+  }
+
+  int _getTotalParticipantCount(SplitBillModel splitBill) {
+    return splitBill.totalPeople;
   }
 }
