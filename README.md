@@ -1,6 +1,6 @@
 > ⚠️ **Important Notice**
 >
-> Since the hackathon process has been completed, the Firebase database used during development has been deleted.  
+> Since the "STELLAR HACKATHON ISTANBUL EDITION" process has been completed, the Firebase database used during development has been deleted.  
 > To make this project reusable, **Firebase integration must be reconfigured** (Authentication, Firestore/Realtime DB, Storage, and required API keys).
 >
 > Please update the Firebase configuration file (`firebase.json`) with your own project credentials before running the application.
